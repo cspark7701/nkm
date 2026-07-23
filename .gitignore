@@ -1,10 +1,13 @@
 .ipynb_checkpoints/
 .jupyter/
+__pycache__
 
 acceptance.npy
 
 Radia-Examples/
 Radia-Examples_Radia/
+
+results/
 
 !img/lattice/Lattice-bts.png
 img/
