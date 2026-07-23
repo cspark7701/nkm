@@ -1,16 +1,19 @@
 .ipynb_checkpoints/
 .jupyter/
 
+acceptance.npy
+
 Radia-Examples/
 Radia-Examples_Radia/
 
+!img/lattice/Lattice-bts.png
 img/
 
 machine_data/
 midterm_report/
 
 pyat_examples/
-saved_scripts/
+backups_20250226/
+backups_20260722/
 
-"\355\217\254\355\225\255\354\236\220\353\243\214/"
-
+포항자료
