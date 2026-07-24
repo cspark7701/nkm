@@ -14,6 +14,7 @@ import numpy as np
 
 from .beam import compute_beam_statistics, compute_beam_centroid, compute_projected_emittance
 from .tracking import track_nkm_thin_kick
+from .units import KickMapMetadata
 
 
 def simulate_nkm_models(injected_beam: np.ndarray,
@@ -31,24 +32,37 @@ def simulate_nkm_models(injected_beam: np.ndarray,
     Returns:
         Dictionary containing tracking outputs and comparison metrics.
     """
+    energy_eV = energy_GeV * 1e9
+
     # 1. Model 1: NKM Off
+    meta_off = KickMapMetadata(
+        coordinate_unit="m",
+        value_type="kick_angle",
+        value_unit="rad",
+        beam_energy_eV=energy_eV
+    )
     def kick_off(x, y):
         return np.zeros_like(x), np.zeros_like(y)
         
-    inj_off = track_nkm_thin_kick(injected_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV)
-    circ_off = track_nkm_thin_kick(circulating_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV)
+    inj_off = track_nkm_thin_kick(injected_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV, metadata=meta_off)
+    circ_off = track_nkm_thin_kick(circulating_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV, metadata=meta_off)
     
-    # 2. Model 2: Idealized Linear Kicker (Constant -5.749 mrad kick for injected beam, 0 for circulating)
+    # 2. Model 2: Idealized Linear Kicker (-5.7491 mrad kick for injected beam, 0 for circulating)
+    meta_ideal = KickMapMetadata(
+        coordinate_unit="m",
+        value_type="kick_angle",
+        value_unit="mrad",
+        beam_energy_eV=energy_eV
+    )
     def kick_ideal(x, y):
-        # 5.749 mrad constant kick
-        return np.full_like(x, 5.7491), np.zeros_like(y)
+        return np.full_like(x, -5.7491), np.zeros_like(y)
         
-    inj_ideal = track_nkm_thin_kick(injected_beam, kick_ideal, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV)
-    circ_ideal = track_nkm_thin_kick(circulating_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV)
+    inj_ideal = track_nkm_thin_kick(injected_beam, kick_ideal, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV, metadata=meta_ideal)
+    circ_ideal = track_nkm_thin_kick(circulating_beam, kick_off, scale_factor=0.0, length_m=length_m, energy_GeV=energy_GeV, metadata=meta_off)
     
     # 3. Model 3: Realistic 2D Kick Map
-    inj_fieldmap = track_nkm_thin_kick(injected_beam, kickmap_obj.evaluate, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV)
-    circ_fieldmap = track_nkm_thin_kick(circulating_beam, kickmap_obj.evaluate, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV)
+    inj_fieldmap = track_nkm_thin_kick(injected_beam, kickmap_obj.evaluate, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV, metadata=getattr(kickmap_obj, "metadata", None))
+    circ_fieldmap = track_nkm_thin_kick(circulating_beam, kickmap_obj.evaluate, scale_factor=scale_factor, length_m=length_m, energy_GeV=energy_GeV, metadata=getattr(kickmap_obj, "metadata", None))
     
     # Compute centroids
     c_inj_in = compute_beam_centroid(injected_beam)

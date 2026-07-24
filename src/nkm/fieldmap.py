@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
+from .units import KickMapMetadata, compute_rigidity, convert_coordinate, convert_kick_angle
+
 
 class OutOfDomainError(ValueError):
     """Raised when querying field values outside tabulated bounds."""
@@ -83,17 +85,13 @@ def validate_1d_fieldmap(x: np.ndarray, by: np.ndarray) -> Dict[str, Any]:
     peak_by = float(np.max(np.abs(by)))
     
     # Symmetry metric (odd or even symmetry check around x=0)
-    # Compare B_y(x) and B_y(-x) if domain covers negative values
     if x_min < 0 and x_max > 0:
-        # Interpolate B_y at -x for x > 0
         pos_mask = (x > 0) & (x <= min(abs(x_min), abs(x_max)))
         x_pos = x[pos_mask]
         by_pos = by[pos_mask]
         
         by_neg_interp = np.interp(-x_pos, x, by)
-        # Check odd symmetry: By(-x) == -By(x)
         odd_sym_residual = float(np.max(np.abs(by_pos + by_neg_interp)))
-        # Check even symmetry: By(-x) == By(x)
         even_sym_residual = float(np.max(np.abs(by_pos - by_neg_interp)))
     else:
         odd_sym_residual = None
@@ -116,9 +114,11 @@ def validate_1d_fieldmap(x: np.ndarray, by: np.ndarray) -> Dict[str, Any]:
 
 class NKMFieldMap1D:
     """
-    1D NKM Field Map Interpolator with strict domain checking and integrated kick utilities.
+    1D NKM Field Map Interpolator with strict domain checking, explicit metadata, and integrated kick utilities.
     """
-    def __init__(self, x: np.ndarray, by: np.ndarray, allow_extrapolation: bool = False):
+    def __init__(self, x: np.ndarray, by: np.ndarray,
+                 allow_extrapolation: bool = False,
+                 metadata: Optional[KickMapMetadata] = None):
         val = validate_1d_fieldmap(x, by)
         if not val["valid"]:
             raise ValueError(f"Invalid 1D field map data: {val}")
@@ -129,7 +129,13 @@ class NKMFieldMap1D:
         self.x_max = float(x.max())
         self.allow_extrapolation = allow_extrapolation
         
-        # Scipy interpolator
+        self.metadata = metadata or KickMapMetadata(
+            coordinate_unit="m",
+            value_type="field",
+            value_unit="T",
+            beam_energy_eV=4.0e9
+        )
+        
         fill_val = "extrapolate" if allow_extrapolation else np.nan
         self._interp_linear = interp1d(x, by, kind='linear', bounds_error=False, fill_value=fill_val)
         self._interp_cubic = interp1d(x, by, kind='cubic', bounds_error=False, fill_value=fill_val)
@@ -157,14 +163,15 @@ class NKMFieldMap1D:
         """
         Calculate horizontal kick angle Delta x' in mrad for a particle at position x_pos.
         
-        Delta x' = (q / p0) * B_y(x) * L = (c / E_eV) * B_y(x) * L
+        Delta x' = (q / p0) * B_y(x) * L
         """
         by_val = self.evaluate(x_pos)
-        c = 299792458.0
         energy_eV = energy_GeV * 1e9
-        rigidity_brho = energy_eV / c  # T*m
-        kick_rad = (by_val * length_m) / rigidity_brho
-        return float(1e3 * kick_rad)  # mrad
+        charge_C = self.metadata.particle_charge_C if self.metadata else -1.602176634e-19
+        brho = compute_rigidity(energy_eV, charge_C)
+        charge_sign = float(np.sign(charge_C))
+        kick_rad = charge_sign * (by_val * length_m) / brho
+        return float(kick_rad * 1e3)  # mrad
 
     def fit_polynomial(self, degree: int = 5) -> Tuple[np.ndarray, float]:
         """

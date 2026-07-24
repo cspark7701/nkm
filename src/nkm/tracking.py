@@ -7,23 +7,36 @@ for 6D particle distributions through the NKM and storage ring injection region.
 
 from typing import Dict, Tuple, Optional, Any, Callable, Union
 import numpy as np
-import at
+
+from .units import (
+    KickMapMetadata,
+    compute_rigidity,
+    convert_kick_angle,
+    integrated_field_to_kick,
+    ELECTRON_CHARGE_C
+)
 
 
 def track_nkm_thin_kick(beam: np.ndarray,
                         kick_fn: Callable[[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray]],
                         scale_factor: float = 1.0,
                         length_m: float = 0.525,
-                        energy_GeV: float = 4.0) -> np.ndarray:
+                        energy_GeV: float = 4.0,
+                        metadata: Optional[KickMapMetadata] = None,
+                        value_type: Optional[str] = None,
+                        value_unit: Optional[str] = None) -> np.ndarray:
     """
     Track a 6D particle beam through a thin-lens NKM kick.
     
     Args:
         beam: 6D particle array of shape (6, n_particles)
-        kick_fn: Function mapping (x, y) -> (kx, ky) in T*m or mrad
+        kick_fn: Function mapping (x, y) -> (kx, ky)
         scale_factor: Scaling factor for magnetic field strength (1.0 = nominal)
         length_m: NKM length in meters
         energy_GeV: Beam energy in GeV
+        metadata: Optional KickMapMetadata object describing kick_fn outputs.
+        value_type: Optional value type if metadata not provided ('integrated_field' or 'kick_angle')
+        value_unit: Optional value unit if metadata not provided ('T_m', 'T_mm', 'rad', 'mrad')
         
     Returns:
         Tracked 6D particle array after the kick.
@@ -38,19 +51,36 @@ def track_nkm_thin_kick(beam: np.ndarray,
     
     kx_val, ky_val = kick_fn(x_pos, y_pos)
     
-    c = 299792458.0
     energy_eV = energy_GeV * 1e9
-    rigidity_brho = energy_eV / c  # T*m
     
-    # Calculate kick angles in radians
-    # Note: Kx value in kickmap is already integrated field or direct kick angle
-    # Check if kx_val is in mrad or T*m: if peak is ~5.75, it represents kick in mrad
-    if np.max(np.abs(kx_val)) > 1.0:  # Value is in mrad
-        delta_xp = - (kx_val * 1e-3) * scale_factor
-        delta_yp = - (ky_val * 1e-3) * scale_factor
-    else:  # Value is integrated field in T*m
-        delta_xp = - (kx_val / rigidity_brho) * scale_factor
-        delta_yp = - (ky_val / rigidity_brho) * scale_factor
+    # Resolve metadata without magnitude guessing
+    if metadata is None:
+        if hasattr(kick_fn, "__self__") and hasattr(kick_fn.__self__, "metadata"):
+            metadata = getattr(kick_fn.__self__, "metadata")
+        elif value_type is not None and value_unit is not None:
+            metadata = KickMapMetadata(
+                coordinate_unit="m",
+                value_type=value_type,  # type: ignore
+                value_unit=value_unit,  # type: ignore
+                beam_energy_eV=energy_eV
+            )
+        else:
+            # Default to standard integrated field in T_m
+            metadata = KickMapMetadata(
+                coordinate_unit="m",
+                value_type="integrated_field",
+                value_unit="T_m",
+                beam_energy_eV=energy_eV
+            )
+            
+    if metadata.value_type == "kick_angle":
+        delta_xp = convert_kick_angle(kx_val, metadata.value_unit, "rad") * scale_factor
+        delta_yp = convert_kick_angle(ky_val, metadata.value_unit, "rad") * scale_factor
+    elif metadata.value_type == "integrated_field":
+        delta_xp = integrated_field_to_kick(kx_val, metadata, energy_eV) * scale_factor
+        delta_yp = integrated_field_to_kick(ky_val, metadata, energy_eV) * scale_factor
+    else:
+        raise ValueError(f"Unsupported value_type in tracking: '{metadata.value_type}'")
         
     out_beam[1, valid_mask] += delta_xp
     out_beam[3, valid_mask] += delta_yp
@@ -67,7 +97,8 @@ def track_nkm_rk4(beam: np.ndarray,
                   length_m: float = 0.525,
                   n_steps: int = 10,
                   energy_GeV: float = 4.0,
-                  scale_factor: float = 1.0) -> np.ndarray:
+                  scale_factor: float = 1.0,
+                  particle_charge_C: float = ELECTRON_CHARGE_C) -> np.ndarray:
     """
     Step-by-step Runge-Kutta (RK4) particle tracking through NKM field map.
     
@@ -78,6 +109,7 @@ def track_nkm_rk4(beam: np.ndarray,
         n_steps: Number of integration steps
         energy_GeV: Beam energy in GeV
         scale_factor: Field amplitude scale factor
+        particle_charge_C: Particle charge in Coulombs
         
     Returns:
         Tracked 6D particle array at NKM exit.
@@ -87,9 +119,9 @@ def track_nkm_rk4(beam: np.ndarray,
     if not np.any(valid_mask):
         return out_beam
         
-    c = 299792458.0
     energy_eV = energy_GeV * 1e9
-    rigidity_brho = energy_eV / c
+    brho = compute_rigidity(energy_eV, particle_charge_C)
+    charge_sign = float(np.sign(particle_charge_C))
     
     dz = length_m / n_steps
     
@@ -100,7 +132,7 @@ def track_nkm_rk4(beam: np.ndarray,
         yp = out_beam[3, valid_mask]
         
         by_val = field_fn(x) * scale_factor
-        delta_xp = - (by_val * dz) / rigidity_brho
+        delta_xp = charge_sign * (by_val * dz) / brho
         
         # RK4 / Kick-Drift update
         out_beam[1, valid_mask] = xp + delta_xp
