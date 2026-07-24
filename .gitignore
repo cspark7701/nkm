@@ -37,6 +37,14 @@ Thumbs.db
 *checkpoint.ipynb
 .jupyter/
 
+# latex
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+
 acceptance.npy
 
 Radia-Examples/
