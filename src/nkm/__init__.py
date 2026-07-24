@@ -10,4 +10,10 @@ from .moga import (
     save_moga_results,
     plot_moga_summary
 )
+from .paper import (
+    generate_paper_tables,
+    generate_paper_figures,
+    run_paper_pipeline
+)
+
 
