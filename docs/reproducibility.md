@@ -4,6 +4,9 @@
 
 This repository contains the complete simulation, optics matching, thick-element tracking, error robustness analysis, and MOGA optimization pipeline for the Nonlinear Kicker Magnet (NKM) and BTS transfer line.
 
+For the single-file comprehensive end-to-end simulation procedure and publication workflow specification, see:
+[docs/SIMULATION_PROCEDURE_AND_PUBLICATION_WORKFLOW.md](file:///home/cspark/Work/projects/nkm/docs/SIMULATION_PROCEDURE_AND_PUBLICATION_WORKFLOW.md)
+
 Every manuscript figure, table, and reported metric can be dynamically reproduced from a clean checkout using fixed random seeds and cryptographic input file verification.
 
 ---
