@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+authors:
+  - name: "NKM Project Developers"
+title: "NKM: Nonlinear Kicker Magnet and BTS Transfer Line Simulation Framework"
+version: 0.1.0
+date-released: 2026-07-25
+url: "https://github.com/nkm-project/nkm"
+license: MIT
