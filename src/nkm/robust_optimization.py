@@ -70,8 +70,10 @@ def evaluate_robustness_statistics(nominal_config: BTSConfig,
 
     return {
         "n_samples": n_samples,
+        "feasible_fraction": float(1.0 - (failures / n_samples)),
         "failure_probability": float(failures / n_samples),
         "mismatch_x": {
+            "p50": float(np.median(mx_arr)),
             "p50_median": float(np.median(mx_arr)),
             "p68": float(np.percentile(mx_arr, 68)),
             "p95": float(np.percentile(mx_arr, 95)),
@@ -81,6 +83,7 @@ def evaluate_robustness_statistics(nominal_config: BTSConfig,
             "bootstrap_95ci_median": [ci_lower, ci_upper]
         },
         "mismatch_y": {
+            "p50": float(np.median(my_arr)),
             "p50_median": float(np.median(my_arr)),
             "p68": float(np.percentile(my_arr, 68)),
             "p95": float(np.percentile(my_arr, 95)),
@@ -89,11 +92,13 @@ def evaluate_robustness_statistics(nominal_config: BTSConfig,
             "std": float(np.std(my_arr)),
         },
         "max_beta_x_m": {
+            "p50": float(np.median(bx_arr)),
             "p50_median": float(np.median(bx_arr)),
             "p95": float(np.percentile(bx_arr, 95)),
             "p99": float(np.percentile(bx_arr, 99)),
         },
         "max_beta_y_m": {
+            "p50": float(np.median(by_arr)),
             "p50_median": float(np.median(by_arr)),
             "p95": float(np.percentile(by_arr, 95)),
             "p99": float(np.percentile(by_arr, 99)),

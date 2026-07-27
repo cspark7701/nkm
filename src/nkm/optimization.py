@@ -149,7 +149,7 @@ def optimize_bts_quadrupoles(method: str = "least_squares",
         else:
             x0 = rng.uniform(bounds_val[0], bounds_val[1], size=9)
 
-        if method == "least_squares":
+        if method in ("least_squares", "SLSQP"):
             # Stage 1: Least Squares matching
             ls_res = least_squares(
                 evaluator.objectives.compute_residual_vector,
@@ -161,14 +161,6 @@ def optimize_bts_quadrupoles(method: str = "least_squares",
             opt_res = minimize(
                 evaluator.objectives.compute_scalar_merit,
                 ls_res.x,
-                method="SLSQP",
-                bounds=bounds_list,
-                options={'maxiter': config.max_iter, 'ftol': 1e-6}
-            )
-        elif method == "SLSQP":
-            opt_res = minimize(
-                evaluator.objectives.compute_scalar_merit,
-                x0,
                 method="SLSQP",
                 bounds=bounds_list,
                 options={'maxiter': config.max_iter, 'ftol': 1e-6}

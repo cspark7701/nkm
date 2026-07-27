@@ -69,6 +69,8 @@ def sample_error_ensemble(config: Optional[ErrorBudgetConfig] = None,
             "dipole_b_err": float(rng.normal(0.0, config.dipole_b_rel_std)),
             # Orbit/Alignment errors
             "booster_x_m": float(rng.normal(0.0, config.booster_x_jitter_std_m)),
+            "booster_x_jitter_m": float(rng.normal(0.0, config.booster_x_jitter_std_m)),
+            "booster_dx_m": float(rng.normal(0.0, config.booster_x_jitter_std_m)),
             "booster_xp_rad": float(rng.normal(0.0, config.booster_xp_jitter_std_rad)),
             "quad_dx_m": rng.normal(0.0, config.quad_dx_std_m, size=9).tolist(),
             "quad_dy_m": rng.normal(0.0, config.quad_dy_std_m, size=9).tolist(),

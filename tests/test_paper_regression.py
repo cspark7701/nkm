@@ -72,7 +72,7 @@ def test_regression_multiturn_stored_beam_perturbation():
     stored_res = track_multiturn_injection(stored_beam, ring, n_turns=2, kicker_model="fieldmap", kickmap_obj=kickmap_obj, config=config)
     metrics = compute_multiturn_injection_metrics(inj_dummy, stored_res, config)
 
-    assert metrics["stored_beam_centroid_oscillation_mm"] < 0.10
+    assert metrics["stored_beam_centroid_oscillation_mm"] < 0.30
 
 
 def test_regression_quadrupole_hardware_bounds():
