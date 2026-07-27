@@ -27,7 +27,7 @@ flowchart TD
     C --> D["Step 3: Multi-Turn Storage Ring Injection<br>(src/nkm/storage_ring_injection.py)"]
     D --> E["Step 4: Deterministic Optics Optimization<br>(src/nkm/constraints.py, objectives.py, optimization.py)"]
     E --> F["Step 5: Error Model & Robust Monte Carlo<br>(src/nkm/errors.py, robust_optimization.py)"]
-    F --> G["Step 6: MOGA Multi-Objective Pareto Study<br>(src/nkm/moga.py, bts-moga.ipynb)"]
+    F --> G["Step 6: MOGA Multi-Objective Pareto Study<br>(src/nkm/moga.py, notebooks/03_bts_moga_pareto.ipynb)"]
     G --> H["Data-Driven Paper Pipeline<br>(src/nkm/results_schema.py, paper.py)"]
 ```
 
@@ -73,7 +73,7 @@ flowchart TD
   4. Evaluate Monte Carlo percentiles (p50, p68, p95, p99), failure probabilities, bootstrap 95% CIs, and One-At-A-Time (OAT) sensitivity rankings.
 
 ### Step 6: MOGA Multi-Objective Pareto Trade-off Analysis
-- **Modules**: `src/nkm/moga.py`, notebook `bts-moga.ipynb`
+- **Modules**: `src/nkm/moga.py`, notebook `notebooks/03_bts_moga_pareto.ipynb`
 - **Script**: `python3 scripts/run_publication_moga.py`
 - **Procedure**:
   1. Formulate 3-objective NSGA-II optimization ($f_1 = M_x + M_y$, $f_2 = \max(\beta_x, \beta_y)$, $f_3 = \sqrt{D_x^2 + D_{px}^2}$).

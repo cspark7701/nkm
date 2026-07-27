@@ -12,8 +12,9 @@ This repository studies a nonlinear kicker magnet (NKM), the booster-to-storage-
 
 ## Authoritative workflows
 
-- `bts.ipynb` is the main simulation notebook.
-- `bts-moga.ipynb` is optional and must remain independently executable.
+- `notebooks/01_bts_main_simulation.ipynb` is the main simulation notebook (Steps 1–5: field validation, thick tracking, injection, BTS optimisation, error model).
+- `notebooks/02_multiturn_injection_validation.ipynb` is the dedicated multi-turn injection validation notebook (Step 3).
+- `notebooks/03_bts_moga_pareto.ipynb` is optional and must remain independently executable (Step 6: MOGA Pareto study).
 - Spreadsheet field files are scientific source data produced from RADIA calculations.
 
 ## Immutable and protected files
@@ -52,7 +53,7 @@ Prefer creating or modifying:
 - `README.md`
 - `.gitignore`
 
-Modify `bts.ipynb` only when integration into the main workflow is necessary. Do not duplicate large notebook cells when reusable functions can be imported.
+Modify `notebooks/01_bts_main_simulation.ipynb` only when integration into the main workflow is necessary. Do not duplicate large notebook cells when reusable functions can be imported.
 
 ## Physics conventions
 
