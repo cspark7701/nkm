@@ -48,12 +48,22 @@ def compute_file_hash(filepath: Union[str, Path]) -> str:
 
 
 def compute_input_data_hashes(repo_root: Path) -> Dict[str, str]:
-    """Compute cryptographic hashes for authoritative scientific input data files."""
+    """Compute cryptographic hashes for authoritative scientific input data files.
+
+    Only true source data files (produced by RADIA or imported from the machine)
+    are hashed here.  Simulation outputs that are *derived* from these files
+    (e.g. storage_ring_lattice_nkm.mat, field_map.npy) are excluded because they
+    are regenerated on every notebook run and are not tracked in git.
+
+    Source files hashed:
+        By.txt               — RADIA 1-D on-axis field map
+        kickmap_file.txt     — RADIA 2-D horizontal kick map
+        K4GSR_HBIv4-1.mat   — Original POHANG storage ring AT lattice (MAD-X export)
+    """
     data_files = [
         "By.txt",
         "kickmap_file.txt",
         "K4GSR_HBIv4-1.mat",
-        "storage_ring_lattice_nkm.mat"
     ]
     hashes = {}
     for filename in data_files:
@@ -63,6 +73,7 @@ def compute_input_data_hashes(repo_root: Path) -> Dict[str, str]:
         else:
             hashes[filename] = "MISSING"
     return hashes
+
 
 
 def record_environment_metadata(output_dir: Path) -> Dict[str, str]:
