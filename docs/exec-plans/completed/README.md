@@ -70,3 +70,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 21. [**Milestone 21 — Task 04: Full Production Simulation Script, Parity Notebook, & Documentation**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/21_task04_full_simulation_script.md)
     - Constructed unified full production shell script (`scripts/run_full_production_simulation.sh`), matching Jupyter notebook (`notebooks/04_full_production_simulation.ipynb`), and documentation (`docs/FULL_PRODUCTION_SIMULATION.md`), with 90% CPU parallelization option and screen verbosity toggle. Held dry run execution per user signal.
+
+22. [**Milestone 22 — Task 04: Production Simulation Dry-Run & Quiet-Mode Progress Enhancements**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/22_task04_dry_run_and_quiet_mode_enhancements.md)
+    - Implemented `-d` / `--dry-run` pre-flight syntax and parameter validation, enhanced `--quiet` mode real-time step notifications (`[RUNNING]` / `[COMPLETED]`), and updated `docs/FULL_PRODUCTION_SIMULATION.md`.
