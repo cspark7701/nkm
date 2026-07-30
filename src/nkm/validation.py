@@ -213,7 +213,8 @@ def perform_grid_convergence_study(by_txt_path: Union[str, Path]) -> Dict[str, A
     for n in grid_sizes:
         x_grid = np.linspace(fmap.x_min, fmap.x_max, n)
         by_grid = fmap.evaluate(x_grid)
-        int_val = float(np.trapezoid(by_grid, x_grid))
+        trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+        int_val = float(trapz(by_grid, x_grid))
         int_fields.append(int_val)
 
     # Reference value with fine grid

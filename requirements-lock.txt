@@ -1,5 +1,5 @@
 # Exact reproducible dependency lock for NKM publication release
-accelerator-toolbox==0.7.0
+accelerator-toolbox>=0.7.0
 numpy==1.26.4
 scipy==1.12.0
 pandas==2.2.1

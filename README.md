@@ -51,6 +51,16 @@ All generated simulation outputs are saved under the `results/` directory.
 
 ## Installation & Setup
 
+> **Detailed Guide**: See [docs/INSTALLATION.md](file:///home/cspark/Work/projects/nkm/docs/INSTALLATION.md) for full step-by-step installation instructions across Conda and venv.
+
+### Automated Setup (1-Command)
+
+```bash
+./scripts/setup_environment.sh
+```
+
+### Manual Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/cspark7701/nkm.git
@@ -60,11 +70,11 @@ cd nkm
 pip install -r requirements-lock.txt
 pip install -e .[dev,moga]
 
+# Verify installation via pytest suite (73 tests)
+pytest -v
+
 # Run single-command paper pipeline
 python3 scripts/reproduce_paper.py
-
-# Run test suite (68 tests)
-pytest -v
 ```
 
 ---
