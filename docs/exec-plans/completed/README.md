@@ -1,8 +1,8 @@
 # NKM Project Milestone Summaries & Executive Execution Plans
 
-This directory (`docs/exec-plans/completed/`) contains the complete, ordered record of all 8 refactoring and simulation milestones achieved in the NKM (Nonlinear Kicker Magnet) Booster-to-Storage Ring (BTS) project.
+This directory (`docs/exec-plans/completed/`) contains the complete, ordered record of all refactoring, simulation, and publication milestones achieved in the NKM (Nonlinear Kicker Magnet) Booster-to-Storage Ring (BTS) project.
 
-> **Project Policy**: From this point forward, all newly completed milestones, tasks, or execution plan documentation must be recorded and archived in this directory (`docs/exec-plans/completed/`).
+> **Project Policy**: All newly completed milestones, tasks, or execution plan documentation must be recorded and archived in this directory (`docs/exec-plans/completed/`) following strict numeric ordering.
 
 ---
 
@@ -30,4 +30,43 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
    - Implemented 3-objective NSGA-II Pareto optimization (`src/nkm/moga.py`), identifying a knee-point design that achieves a $61.5\times$ reduction in total exit mismatch ($\mathcal{M}_x + \mathcal{M}_y = 0.6061$) and reduces peak beta to $25.14\text{ m}$.
 
 8. [**Milestone 08 — Publication-Quality Validation, Paper Reproduction & Release**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/08_publication_release.md)
-   - Built automated paper table/figure generator (`src/nkm/paper.py`), one-command reproduction runner (`scripts/reproduce_paper.py`), regression test suite (`tests/test_paper_regression.py`), and authored/compiled Journal of Instrumentation (JINST) paper manuscript ([`docs/jinst-paper/paper.pdf`](file:///home/cspark/Work/projects/nkm/docs/jinst-paper/paper.pdf)).
+   - Built automated paper table/figure generator (`src/nkm/paper.py`), one-command reproduction runner (`scripts/reproduce_paper.py`), regression test suite (`tests/test_paper_regression.py`), and authored/compiled Journal of Instrumentation (JINST) paper manuscript.
+
+9. [**Milestone 09 — Unit-Safe Field Map & Kick Map Ingestion**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/09_unit_safe_kickmap.md)
+   - Standardized unit conversion guarantees and range-checked spline interpolation across field maps.
+
+10. [**Milestone 10 — Field-Kick Cross Validation & Lorentz Sign Consistency**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/10_field_kick_cross_validation.md)
+    - Validated line integrals of 1D longitudinal field maps against 2D transverse kickmaps.
+
+11. [**Milestone 11 — Symplectic Thick Element Tracking Engine**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/11_thick_element_tracking.md)
+    - Verified symplectic slicing convergence for particle trajectory propagation through thick NKM fields.
+
+12. [**Milestone 12 — Multi-Turn Storage Ring Injected Beam Capture**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/12_multiturn_storage_ring_capture.md)
+    - Modeled 1,000-turn storage ring dynamics, physical vacuum apertures, and top-up injection efficiency.
+
+13. [**Milestone 13 — Deterministic BTS Optics Optimization Pipeline**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/13_deterministic_bts_optimization.md)
+    - Refined 8-quad family SLSQP matching with hardware gradient constraints.
+
+14. [**Milestone 14 — Error Model & Robust Optics Optimization**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/14_error_model_and_robust_optimization.md)
+    - Implemented 5-category Monte Carlo error distributions and sensitivity evaluations.
+
+15. [**Milestone 15 — MOGA Feasibility & Pareto Reproducibility**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/15_moga_feasibility_reproducibility.md)
+    - Validated multi-seed NSGA-II Pareto optimization reproducibility and constraint handling.
+
+16. [**Milestone 16 — Data-Driven Publication Pipeline**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/16_data_driven_paper_pipeline.md)
+    - Automated creation of figure graphics, LaTeX tables, and benchmark metric JSON files.
+
+17. [**Milestone 17 — Reproducible Publication Release & CI Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/17_reproducible_publication_release.md)
+    - Added CITATION.cff, MIT License, reproducibility docs, and GitHub Actions CI regression workflows.
+
+18. [**Milestone 18 — Task 01: Remove GitHub Action Failures (Local Repo Workflow Validation)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/18_task01_remove_github_action_failures.md)
+    - Audited local GitHub Actions CI workflows, enforcing 100% local operation without remote pushes or remote API checks.
+
+19. [**Milestone 19 — Task 02: Environment Setup & Installation Guide**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/19_task02_environment_set_up.md)
+    - Created comprehensive setup instructions (`INSTALLATION.md`) and package installation verification workflows.
+
+20. [**Milestone 20 — Task 03: Consolidated Technical Document & GitHub.io Project Webpage**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/20_task03_consolidated_document_and_website.md)
+    - Authored consolidated LaTeX report (`docs/nkm_consolidated_report.tex` / `.pdf`) and built modern github.io webpage (`docs/index.html`) featuring author Chong Shik Park and Korea University affiliation.
+
+21. [**Milestone 21 — Task 04: Full Production Simulation Script, Parity Notebook, & Documentation**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/21_task04_full_simulation_script.md)
+    - Constructed unified full production shell script (`scripts/run_full_production_simulation.sh`), matching Jupyter notebook (`notebooks/04_full_production_simulation.ipynb`), and documentation (`docs/FULL_PRODUCTION_SIMULATION.md`), with 90% CPU parallelization option and screen verbosity toggle. Held dry run execution per user signal.

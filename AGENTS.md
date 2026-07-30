@@ -10,6 +10,24 @@ This repository studies a nonlinear kicker magnet (NKM), the booster-to-storage-
 4. evaluate injected-beam capture while minimizing stored-beam perturbation;
 5. quantify robustness against beam, magnet, alignment, and field-map errors.
 
+## Project Metadata & Authorship
+
+- **Author**: Chong Shik Park
+- **Affiliation**: Department of Accelerator Science and Center for Accelerator Research, Korea University, Sejong, 30019 Republic of Korea
+
+## Version Control & Automation Safeguards
+
+- **Do NOT git push** to remote repositories under any circumstances.
+- **Do NOT check GitHub Actions in remote** or interact with remote GitHub API endpoints.
+- You are strictly allowed to modify and test GitHub Actions workflows in the **local repository only**.
+
+## Documentation & Execution Plan Archiving
+
+- All executed tasks and milestone completions must be summarized and archived in `docs/exec-plans/completed/`.
+- File names in `docs/exec-plans/completed/` must strictly follow the established numerical sequence (e.g., `18_...`, `19_...`, `20_...`).
+- `docs/exec-plans/completed/README.md` must be kept up to date with links and summaries of all completed tasks.
+- Created HTML pages (such as project documentation web pages) must adopt a `github.io` project webpage style, re-using existing project templates (`docs/index.html`) whenever possible.
+
 ## Authoritative workflows
 
 - `notebooks/01_bts_main_simulation.ipynb` is the main simulation notebook (Steps 1–5: field validation, thick tracking, injection, BTS optimisation, error model).

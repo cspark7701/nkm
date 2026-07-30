@@ -1,7 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software in your research, please cite it as below."
 authors:
-  - name: "NKM Project Developers"
+  - name: "Chong Shik Park"
+    affiliation: "Department of Accelerator Science and Center for Accelerator Research, Korea University, Sejong, 30019 Republic of Korea"
 title: "NKM: Nonlinear Kicker Magnet and BTS Transfer Line Simulation Framework"
 version: 0.1.0
 date-released: 2026-07-25
