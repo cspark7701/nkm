@@ -44,10 +44,46 @@ class StorageRingInjectionConfig:
     particle_charge_C: float = ELECTRON_CHARGE_C
 
 
+def build_storage_ring_nkm_lattice(source_mat_path: Optional[Union[str, Path]] = None) -> at.Lattice:
+    """
+    Build storage ring lattice with NKM inserted from original K4GSR_HBIv4-1.mat source data.
+    """
+    if source_mat_path is None:
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        source_mat_path = repo_root / "K4GSR_HBIv4-1.mat"
+    else:
+        source_mat_path = Path(source_mat_path)
+
+    if not source_mat_path.is_file():
+        raise FileNotFoundError(f"Original source storage ring lattice not found: {source_mat_path}")
+
+    original_lattice = at.load_mat(source_mat_path)
+    section_start = original_lattice[0]
+    section_end = original_lattice[-1]
+
+    storage_ring_lattice = original_lattice[2:len(original_lattice)-1]
+
+    dr_nkm_up_ring = at.Drift('NKMUPRING', 2.0)
+    dr_nkm = at.Drift('NKM', 0.525)
+    dr_nkm_down = at.Drift('NKMDOWN', 0.175)
+
+    storage_ring_lattice.append(dr_nkm_up_ring)
+    storage_ring_lattice.append(section_end)
+
+    storage_ring_lattice.insert(0, dr_nkm_down)
+    storage_ring_lattice.insert(0, dr_nkm)
+    storage_ring_lattice.insert(0, section_start)
+
+    return storage_ring_lattice
+
+
 def load_storage_ring_injection_lattice(config: Optional[StorageRingInjectionConfig] = None,
-                                        mat_path: Optional[Union[str, Path]] = None) -> Tuple[at.Lattice, int]:
+                                        mat_path: Optional[Union[str, Path]] = None,
+                                        auto_generate: bool = True) -> Tuple[at.Lattice, int]:
     """
     Load storage ring AT lattice and return (lattice, nkm_element_index).
+    If mat_path does not exist and auto_generate is True, resurrects storage_ring_lattice_nkm.mat
+    from K4GSR_HBIv4-1.mat.
     """
     if config is None:
         config = StorageRingInjectionConfig()
@@ -59,7 +95,11 @@ def load_storage_ring_injection_lattice(config: Optional[StorageRingInjectionCon
         mat_path = Path(mat_path)
 
     if not mat_path.is_file():
-        raise FileNotFoundError(f"Storage ring lattice file not found: {mat_path}")
+        if auto_generate:
+            lattice = build_storage_ring_nkm_lattice()
+            at.save_mat(lattice, mat_path)
+        else:
+            raise FileNotFoundError(f"Storage ring lattice file not found: {mat_path}")
 
     ring = at.load_mat(mat_path)
 

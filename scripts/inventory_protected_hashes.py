@@ -37,6 +37,14 @@ def compute_sha256(filepath: Path) -> str:
     return sha256.hexdigest()
 
 
+UNTRACKED_SIMULATION_OUTPUTS = {
+    "acceptance.npy",
+    "field_map.npy",
+    "storage_ring_lattice_nkm.mat",
+    "storage_ring_lattice_after_nkm.mat",
+}
+
+
 def find_protected_files(root: Path) -> List[Path]:
     """Find all protected files in the repository root."""
     protected_files = []
@@ -50,6 +58,8 @@ def find_protected_files(root: Path) -> List[Path]:
     # 2. Extension matches in repo root (non-recursive to avoid outputs under results/)
     for item in root.iterdir():
         if item.is_file() and item.suffix.lower() in PROTECTED_EXTENSIONS:
+            if item.name in UNTRACKED_SIMULATION_OUTPUTS:
+                continue
             if item not in protected_files:
                 protected_files.append(item)
                 
