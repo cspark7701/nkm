@@ -103,8 +103,11 @@ run_step() {
         echo "======================================================================"
         "${cmd[@]}" 2>&1 | tee -a "${LOG_FILE}"
     else
-        echo "[EXEC] ${step_name} (log -> ${LOG_FILE})"
+        echo "[RUNNING] ${step_name} (log -> ${LOG_FILE}) ..."
+        echo "=== [EXEC] ${step_name} ===" >> "${LOG_FILE}"
+        echo "Command: ${cmd[*]}" >> "${LOG_FILE}"
         "${cmd[@]}" >> "${LOG_FILE}" 2>&1
+        echo "[COMPLETED] ${step_name}"
     fi
 }
 
