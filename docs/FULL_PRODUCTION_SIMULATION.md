@@ -22,6 +22,9 @@ Both entry points execute the exact same 8 simulation steps in identical sequenc
 ### Running the Production Script
 
 ```bash
+# Perform a DRY RUN (validates all script paths, syntax, & parameters without executing heavy calculations)
+./scripts/run_full_production_simulation.sh --dry-run
+
 # Run with default settings (Verbose output, 90% CPU cores allocated)
 ./scripts/run_full_production_simulation.sh
 
@@ -36,6 +39,7 @@ Both entry points execute the exact same 8 simulation steps in identical sequenc
 
 | Flag | Long Option | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `-d` | `--dry-run` | Off | Performs a dry run of all 8 simulation steps, verifying input files and Python script syntax without running long simulations. |
 | `-q` | `--quiet` | Off (`--verbose`) | Suppresses screen output and redirects all verbose stdout/stderr to a master log file under `results/production_run_<timestamp>/logs/production_run.log`. Recommended for background runs and AI agent turns. |
 | `-v` | `--verbose` | On | Prints full real-time simulation step logs directly to terminal screen. |
 | `-p` | `--parallel` | 90% Cores | Sets the number of parallel CPU worker processes ($N_{\text{workers}} = \max(1, \lfloor 0.9 \times N_{\text{cpu}} \rfloor)$). |

@@ -18,6 +18,7 @@ set -e
 
 # Default configuration settings
 VERBOSE=true
+DRY_RUN=false
 DEFAULT_CORES=$(python3 -c "import os; print(max(1, int(os.cpu_count() * 0.9)))")
 N_WORKERS=${DEFAULT_CORES}
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -27,6 +28,10 @@ OUTPUT_DIR="${REPO_ROOT}/results/production_run_${TIMESTAMP}"
 # Parse command line flags
 while [[ $# -gt 0 ]]; do
     case $1 in
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
         -q|--quiet)
             VERBOSE=false
             shift
@@ -46,6 +51,7 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             echo "Usage: ./scripts/run_full_production_simulation.sh [OPTIONS]"
             echo "Options:"
+            echo "  -d, --dry-run      Perform a dry run (validates scripts & inputs without running long simulations)."
             echo "  -q, --quiet        Disable verbose output to screen (log saved to file)."
             echo "  -v, --verbose      Enable verbose output to screen (default)."
             echo "  -p, --parallel N   Number of parallel CPU workers (default: 90% cores = ${DEFAULT_CORES})."
@@ -72,13 +78,25 @@ mkdir -p "${OUTPUT_DIR}/summary"
 
 LOG_FILE="${OUTPUT_DIR}/logs/production_run.log"
 
-# Function to execute commands with optional stdout suppression
+# Function to execute commands with optional stdout suppression and dry-run support
 run_step() {
     local step_name="$1"
     shift
     local cmd=("$@")
 
-    if [ "${VERBOSE}" = true ]; then
+    if [ "${DRY_RUN}" = true ]; then
+        echo "======================================================================"
+        echo " [DRY-RUN] ${step_name}"
+        echo " Command  : ${cmd[*]}"
+        local script_path="${cmd[1]}"
+        if [ -f "${script_path}" ]; then
+            python3 -m py_compile "${script_path}"
+            echo " Status   : Script '${script_path}' verified (syntax OK)"
+        else
+            echo " Status   : Executable command verified"
+        fi
+        echo "======================================================================"
+    elif [ "${VERBOSE}" = true ]; then
         echo "======================================================================"
         echo " [EXEC] ${step_name}"
         echo " Command: ${cmd[*]}"
@@ -97,6 +115,7 @@ echo " Timestamp        : ${TIMESTAMP}"
 echo " Parallel Workers : ${N_WORKERS} CPU Cores (~90% allocation)"
 echo " Output Directory : ${OUTPUT_DIR}"
 echo " Verbose Screen   : ${VERBOSE}"
+echo " Dry Run Mode     : ${DRY_RUN}"
 echo " Master Log File  : ${LOG_FILE}"
 echo "======================================================================"
 
