@@ -55,20 +55,20 @@
     <!-- Sidebar TOC Navigation -->
     <nav id="TOC">
       <ul id="toc-list">
-        <li><a href="#overview" class="current">1. System Overview</a></li>
-        <li><a href="#physics">2. Physics & Field Models</a>
+        <li><a href="#overview" class="current">System Overview</a></li>
+        <li><a href="#physics">Physics & Field Models</a>
           <ul>
-            <li><a href="#off-axis-injection">2.1 Off-Axis Top-Up Injection</a></li>
-            <li><a href="#analytical-nlk">2.2 4-Wire NLK Model</a></li>
-            <li><a href="#symplectic-tracking">2.3 Spline Field Map & Tracking</a></li>
+            <li><a href="#off-axis-injection">Off-Axis Top-Up Injection</a></li>
+            <li><a href="#analytical-nlk">4-Wire NLK Model</a></li>
+            <li><a href="#symplectic-tracking">Spline Field Map & Tracking</a></li>
           </ul>
         </li>
-        <li><a href="#architecture">3. Software Architecture</a></li>
-        <li><a href="#procedures">4. Authoritative Procedures</a></li>
-        <li><a href="#pipeline">5. Full Production Pipeline</a></li>
-        <li><a href="#metrics">6. Verification Metrics</a></li>
-        <li><a href="#provenance">7. Data Provenance</a></li>
-        <li><a href="#references">8. Literature & References</a></li>
+        <li><a href="#architecture">Software Architecture</a></li>
+        <li><a href="#procedures">Authoritative Procedures</a></li>
+        <li><a href="#pipeline">Full Production Pipeline</a></li>
+        <li><a href="#metrics">Verification Metrics</a></li>
+        <li><a href="#provenance">Data Provenance</a></li>
+        <li><a href="#references">Literature & References</a></li>
       </ul>
     </nav>
 
@@ -82,7 +82,7 @@
         <span>Chong Shik Park &bull; Korea University</span>
       </div>
 
-      <!-- Section 1: Overview -->
+      <!-- Section: Overview -->
       <section id="overview">
         <h1>Nonlinear Kicker Magnet (NKM) & BTS Simulation Framework</h1>
         
@@ -94,7 +94,7 @@
           This repository provides static documentation for the numerical modeling, 3D/2D RADIA magnetic field ingestion, thick symplectic particle tracking, multi-turn physical aperture storage ring injection dynamics, and multi-objective genetic algorithm (MOGA) optics optimization of the <strong>Nonlinear Kicker Magnet (NKM)</strong> system at the <strong>Pohang 4th Generation Storage Ring (POHANG 4GSR)</strong>.
         </p>
 
-        <h2>1.1 Key Baseline Parameters</h2>
+        <h2>Key Baseline Parameters</h2>
         <table>
           <thead>
             <tr>
@@ -145,16 +145,16 @@
         </table>
       </section>
 
-      <!-- Section 2: Physics -->
+      <!-- Section: Physics -->
       <section id="physics">
-        <h1>2. Physics Models & Theoretical Foundations</h1>
+        <h1>Physics Models & Theoretical Foundations</h1>
 
-        <h2 id="off-axis-injection">2.1 Off-Axis Top-Up Injection Principle</h2>
+        <h2 id="off-axis-injection">Off-Axis Top-Up Injection Principle</h2>
         <p>
           Traditional top-up injection employs pulsed dipole bump kickers, which introduce transient closed-orbit distortion and user experiment disruption due to pulse mismatch. The Nonlinear Kicker Magnet (NKM) generates a non-axisymmetric octupole-like magnetic field profile along the horizontal plane ($y=0$), producing zero field and zero spatial derivative at the closed orbit ($x=0$), while delivering a maximum kick deflection at the injected bunch position ($x \approx -16\text{ mm}$).
         </p>
 
-        <h2 id="analytical-nlk">2.2 Analytical 4-Wire NLK Field Model</h2>
+        <h2 id="analytical-nlk">Analytical 4-Wire NLK Field Model</h2>
         <p>
           The complex magnetic flux density $\vec{B}(x,y)$ produced by four symmetric conductors at $(\pm x_c, \pm y_c)$ carrying alternating currents $I$ is evaluated via Biot-Savart integration:
         </p>
@@ -167,7 +167,7 @@
 
         <pre><code>Delta x' = (q / p_0) * int_{0}^{L_nkm} B_y(x,y,z) dz = (1 / (B\rho)_0) * int_{0}^{L_nkm} B_y(x,y,z) dz</code></pre>
 
-        <h2 id="symplectic-tracking">2.3 2D Spline Field Map & Thick Symplectic Tracking</h2>
+        <h2 id="symplectic-tracking">2D Spline Field Map & Thick Symplectic Tracking</h2>
         <p>
           To model realistic RADIA 3D fringe fields and 2D kick maps without artificial numerical boundary noise, bicubic spline interpolation is used. Symplectic flow is maintained over $N_{\text{slices}}$ thick integration steps:
         </p>
@@ -177,9 +177,9 @@ x'_{k+1}   = x'_k + (q / p_0) * B_y(x_{k+1/2}, y_{k+1/2}) * dz
 x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
       </section>
 
-      <!-- Section 3: Architecture -->
+      <!-- Section: Architecture -->
       <section id="architecture">
-        <h1>3. Software Architecture & Module Subsystems</h1>
+        <h1>Software Architecture & Module Subsystems</h1>
         <p>
           The simulation framework is organized inside <code>src/nkm/</code> with strict physical unit enforcement:
         </p>
@@ -232,9 +232,9 @@ x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
         </table>
       </section>
 
-      <!-- Section 4: Procedures -->
+      <!-- Section: Procedures -->
       <section id="procedures">
-        <h1>4. Authoritative Simulation Procedures (Steps 1–6)</h1>
+        <h1>Authoritative Simulation Procedures</h1>
 
         <ul class="section-index">
           <li><strong>Step 1: Field Validation</strong> — 5-way cross-validation between RADIA 3D, RADIA 2D, analytical 4-wire, and polynomial fits.</li>
@@ -246,9 +246,9 @@ x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
         </ul>
       </section>
 
-      <!-- Section 5: Pipeline -->
+      <!-- Section: Pipeline -->
       <section id="pipeline">
-        <h1>5. Single-File Full Production Pipeline</h1>
+        <h1>Single-File Full Production Pipeline</h1>
         
         <div class="source-note">
           <strong>Production Run Commands:</strong> Use the single shell script <code>scripts/run_full_production_simulation.sh</code>.
@@ -261,18 +261,18 @@ x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
 ./scripts/run_full_production_simulation.sh --quiet --parallel 7</code></pre>
       </section>
 
-      <!-- Section 6: Metrics -->
+      <!-- Section: Metrics -->
       <section id="metrics">
-        <h1>6. Verification Metrics & Regression Test Suite</h1>
+        <h1>Verification Metrics & Regression Test Suite</h1>
         <p>
           The automated test suite verifies 73 physics and numerical constraints across the codebase:
         </p>
         <pre><code>pytest tests/test_paper_regression.py</code></pre>
       </section>
 
-      <!-- Section 7: Data Provenance -->
+      <!-- Section: Data Provenance -->
       <section id="provenance">
-        <h1>7. Cryptographic Data Provenance</h1>
+        <h1>Cryptographic Data Provenance</h1>
         <p>
           To guarantee scientific reproducibility, all input field maps and lattice structures match exact SHA-256 hashes:
         </p>
@@ -305,9 +305,9 @@ x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
         </table>
       </section>
 
-      <!-- Section 8: Literature -->
+      <!-- Section: Literature -->
       <section id="references">
-        <h1>8. Literature & References</h1>
+        <h1>Literature & References</h1>
         <ul>
           <li><strong>[1] BESSY II NLK</strong>: T. Atkinson et al., <em>Development of a Nonlinear Kicker Magnet for Top-Up Injection at BESSY II</em>, Proc. IPAC'11, San Sebastián, Spain, pp. 3370–3372, 2011.</li>
           <li><strong>[2] MAX IV Injection</strong>: S. C. Leemann, <em>Nonlinear Kicker Magnet Top-Up Injection Dynamics for the MAX IV 3 GeV Storage Ring</em>, Phys. Rev. ST Accel. Beams, vol. 15, p. 050705, 2012.</li>
