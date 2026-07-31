@@ -12,7 +12,8 @@
     MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
       },
       svg: { fontCache: 'global' }
     };
@@ -159,22 +160,28 @@
           The complex magnetic flux density $\vec{B}(x,y)$ produced by four symmetric conductors at $(\pm x_c, \pm y_c)$ carrying alternating currents $I$ is evaluated via Biot-Savart integration:
         </p>
 
-        <pre><code>B_y(x,y) = (mu_0 * I / 2pi) * sum_{k=1}^4 (-1)^k * (x - x_k) / ((x - x_k)^2 + (y - y_k)^2)</code></pre>
+        <div class="formula-box">
+          $$ B_y(x,y) = \frac{\mu_0 I}{2\pi} \sum_{k=1}^{4} (-1)^{k} \frac{x - x_k}{(x - x_k)^2 + (y - y_k)^2} $$
+        </div>
 
         <p>
           The net horizontal deflection angle $\Delta x'$ experienced by ultra-relativistic 4.0 GeV electrons across length $L_{\text{nkm}} = 0.525\text{ m}$ is:
         </p>
 
-        <pre><code>Delta x' = (q / p_0) * int_{0}^{L_nkm} B_y(x,y,z) dz = (1 / (B\rho)_0) * int_{0}^{L_nkm} B_y(x,y,z) dz</code></pre>
+        <div class="formula-box">
+          $$ \Delta x' = \frac{q}{p_0} \int_{0}^{L_{\text{nkm}}} B_y(x,y,z) \, dz = \frac{1}{(B\rho)_0} \int_{0}^{L_{\text{nkm}}} B_y(x,y,z) \, dz $$
+        </div>
 
         <h2 id="symplectic-tracking">2D Spline Field Map & Thick Symplectic Tracking</h2>
         <p>
           To model realistic RADIA 3D fringe fields and 2D kick maps without artificial numerical boundary noise, bicubic spline interpolation is used. Symplectic flow is maintained over $N_{\text{slices}}$ thick integration steps:
         </p>
 
-        <pre><code>x_{k+1/2} = x_k + 0.5 * dz * x'_k
-x'_{k+1}   = x'_k + (q / p_0) * B_y(x_{k+1/2}, y_{k+1/2}) * dz
-x_{k+1}   = x_{k+1/2} + 0.5 * dz * x'_{k+1}</code></pre>
+        <div class="formula-box">
+          $$ x_{k+1/2} = x_k + \frac{1}{2} \Delta z \, x'_k, \quad
+             x'_{k+1} = x'_k + \frac{q}{p_0} B_y\left(x_{k+1/2}, y_{k+1/2}\right) \Delta z, \quad
+             x_{k+1} = x_{k+1/2} + \frac{1}{2} \Delta z \, x'_{k+1} $$
+        </div>
       </section>
 
       <!-- Section: Architecture -->

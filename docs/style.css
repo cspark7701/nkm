@@ -240,6 +240,15 @@ a:hover { text-decoration: underline; }
   color: var(--rtd-muted);
   font-size: 0.84rem;
 }
+.formula-box {
+  background: var(--rtd-code-bg);
+  border: 1px solid var(--rtd-border);
+  border-left: 4px solid var(--rtd-green);
+  padding: 12px 16px;
+  margin: 16px 0 20px;
+  overflow-x: auto;
+  text-align: center;
+}
 pre {
   overflow-x: auto;
   margin: 0 0 18px;
