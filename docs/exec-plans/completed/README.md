@@ -79,3 +79,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 24. [**Milestone 24 — Task 03a: SynapticTrack Style Read the Docs Webpage Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/24_task03a_synaptictrack_style.md)
     - Updated `docs/index.html` and `docs/style.css` to adopt the exact Read the Docs style specification from `/home/cspark/Work/simulation_codes-working/synapticTrack/docs/site/style.css`.
+
+25. [**Milestone 25 — Task: Complete Removal of Facility Reference Metadata**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/25_task_remove_pohang_references.md)
+    - Audited and sanitized all facility-specific naming references across source code, scripts, documentation, and configuration files.
