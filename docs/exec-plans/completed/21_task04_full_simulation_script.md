@@ -7,7 +7,7 @@
 
 ## 1. Executive Summary
 
-Task 04 delivered the unified **Single-File Full Production Simulation & Analysis Pipeline** for the NKM and BTS transfer line at POHANG 4GSR. The pipeline consists of an automated shell script (`scripts/run_full_production_simulation.sh`), a 1-to-1 parity Jupyter notebook (`notebooks/04_full_production_simulation.ipynb`), and comprehensive documentation (`docs/FULL_PRODUCTION_SIMULATION.md`).
+Task 04 delivered the unified **Single-File Full Production Simulation & Analysis Pipeline** for the NKM and BTS transfer line at 4GSR. The pipeline consists of an automated shell script (`scripts/run_full_production_simulation.sh`), a 1-to-1 parity Jupyter notebook (`notebooks/04_full_production_simulation.ipynb`), and comprehensive documentation (`docs/FULL_PRODUCTION_SIMULATION.md`).
 
 Per user instructions ("Continue to Task04. But do not run full production simulation dry run yet."), all script, notebook, and documentation assets have been constructed, validated for syntax and layout, and held ready for execution without running the actual long production simulation.
 

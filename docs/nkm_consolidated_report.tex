@@ -38,7 +38,7 @@
 \setlength{\headheight}{14pt}
 \fancyhf{}
 \rhead{NKM \& BTS Simulation Framework Report}
-\lhead{POHANG 4GSR Transfer Line Study}
+\lhead{4GSR Transfer Line Study}
 \rfoot{Page \thepage}
 
 \title{\textbf{Nonlinear Kicker Magnet (NKM), BTS Transfer Line Optical Matching, and Storage Ring Injection Dynamics}\\
@@ -53,7 +53,7 @@ Korea University, Sejong, 30019 Republic of Korea}
 \maketitle
 
 \begin{abstract}
-This consolidated technical document presents a comprehensive theoretical framework, numerical modeling strategy, software architecture, and publication reproduction workflow for the Nonlinear Kicker Magnet (NKM) system and the Booster-to-Storage Ring (BTS) transfer line optics at the Pohang 4th Generation Storage Ring (POHANG 4GSR). The primary objective of the NKM is to enable transparent off-axis top-up beam injection into the storage ring by generating a octupole-like non-uniform horizontal magnetic kick that vanishes on the closed orbit ($x=0$), thereby eliminating stored-beam perturbation while providing sufficient deflection to capture injected electron bunches. This report consolidates all analytical physics models, 2D/3D RADIA magnetic field calculation ingestion algorithms, thick symplectic particle tracking formulations, multi-turn physical aperture storage ring tracking dynamics, multi-objective genetic algorithm (MOGA) optics optimization, and cryptographic data provenance mechanisms into a unified reference document.
+This consolidated technical document presents a comprehensive theoretical framework, numerical modeling strategy, software architecture, and publication reproduction workflow for the Nonlinear Kicker Magnet (NKM) system and the Booster-to-Storage Ring (BTS) transfer line optics at the 4th Generation Storage Ring (4GSR). The primary objective of the NKM is to enable transparent off-axis top-up beam injection into the storage ring by generating a octupole-like non-uniform horizontal magnetic kick that vanishes on the closed orbit ($x=0$), thereby eliminating stored-beam perturbation while providing sufficient deflection to capture injected electron bunches. This report consolidates all analytical physics models, 2D/3D RADIA magnetic field calculation ingestion algorithms, thick symplectic particle tracking formulations, multi-turn physical aperture storage ring tracking dynamics, multi-objective genetic algorithm (MOGA) optics optimization, and cryptographic data provenance mechanisms into a unified reference document.
 \end{abstract}
 
 \tableofcontents
@@ -122,8 +122,8 @@ To overcome this, non-axisymmetric kickers were pioneered:
     \item \textbf{SOLEIL \& ALS-U}: Adoption of optimized NLK profiles to accommodate narrow vacuum chamber stay-clears and off-axis top-up injection.
 \end{itemize}
 
-\subsection{POHANG 4GSR Injection Requirements}
-The Pohang 4th Generation Storage Ring (POHANG 4GSR) is a 4.0 GeV ultra-low emittance facility ($e_{\text{nat}} \approx 50\text{ pm}\cdot\text{rad}$). The BTS transfer line transports 4.0 GeV electron bunches from the booster synchrotron to the storage ring injection septum.
+\subsection{4GSR Injection Requirements}
+The 4th Generation Storage Ring (4GSR) is a 4.0 GeV ultra-low emittance facility ($e_{\text{nat}} \approx 50\text{ pm}\cdot\text{rad}$). The BTS transfer line transports 4.0 GeV electron bunches from the booster synchrotron to the storage ring injection septum.
 
 Optical matching at the septum exit requires precise control of Twiss parameters ($\beta_x = 7.56\text{ m}, \beta_y = 12.27\text{ m}, \alpha_x = 1.52, \alpha_y = -1.65$) and zero dispersion to maximize injection transmission efficiency while constraining maximum quadrupole strengths within hardware limits ($|K_1| \le 3.0\text{ m}^{-2}$).
 

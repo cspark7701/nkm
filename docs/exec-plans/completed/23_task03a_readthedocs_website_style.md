@@ -15,7 +15,7 @@ The updated webpage matches the layout, navigation tree, typography, callout adm
 
 1. **Read the Docs Theme Architecture (`docs/index.html`)**:
    - **Sidebar Navigation Pane (`wy-nav-side`)**: Project title header, version badge pill (`v0.1.0 (latest)`), live search filter input (`Search docs...`), categorized multi-level TOC tree, and Korea University footer.
-   - **Top Breadcrumbs Bar (`wy-breadcrumbs`)**: Interactive path navigation (`Docs » POHANG 4GSR » NKM`), GitHub view link, PDF report download button, and instant Theme Switcher (Dark / RTD Classic Light Mode).
+   - **Top Breadcrumbs Bar (`wy-breadcrumbs`)**: Interactive path navigation (`Docs » 4GSR » NKM`), GitHub view link, PDF report download button, and instant Theme Switcher (Dark / RTD Classic Light Mode).
    - **Sphinx Admonition Boxes**: Applied `wy-admonition` styles for Note (Author & Affiliation block), Tip (Production script & dry-run commands), Warning, and Important (Cryptographic SHA-256 data provenance).
    - **Data Tables (`wy-table`)**: Styled module subsystem tables and SHA-256 data checksum tables matching Sphinx Wyrm border and alternate row shading rules.
    - **Typography & MathJax**: Used `Lato`, `Roboto Slab`, and `Fira Code` webfonts with MathJax LaTeX equation rendering.

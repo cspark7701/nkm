@@ -48,7 +48,7 @@ Do not modify these files unless the user explicitly requests a simulation that 
 **Scientific source data (tracked in git, SHA-256 verified):**
 - `By.txt` — RADIA-computed 1-D on-axis longitudinal field map
 - `kickmap_file.txt` — RADIA-computed 2-D horizontal kick map
-- `K4GSR_HBIv4-1.mat` — Original POHANG storage ring AT lattice (MAD-X export)
+- `K4GSR_HBIv4-1.mat` — Original 4GSR storage ring AT lattice (MAD-X export)
 - `nkm_field.xlsx`, `nkm_field_expanded.xlsx` — RADIA field spreadsheets
 - Any other `*.xls`, `*.xlsm` spreadsheets in the repository root
 

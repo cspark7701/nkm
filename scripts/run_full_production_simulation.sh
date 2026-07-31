@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Full Production Simulation & Analysis Script
-# NKM & BTS Transfer Line Physics Simulation Framework (POHANG 4GSR)
+# NKM & BTS Transfer Line Physics Simulation Framework (4GSR)
 #
 # Usage:
 #   ./scripts/run_full_production_simulation.sh [OPTIONS]
