@@ -73,3 +73,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 22. [**Milestone 22 — Task 04: Production Simulation Dry-Run & Quiet-Mode Progress Enhancements**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/22_task04_dry_run_and_quiet_mode_enhancements.md)
     - Implemented `-d` / `--dry-run` pre-flight syntax and parameter validation, enhanced `--quiet` mode real-time step notifications (`[RUNNING]` / `[COMPLETED]`), and updated `docs/FULL_PRODUCTION_SIMULATION.md`.
+
+23. [**Milestone 23 — Task 03a: Read the Docs (Sphinx / Wyrm) Project Webpage Style**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/23_task03a_readthedocs_website_style.md)
+    - Converted `docs/index.html` into a Read the Docs (Sphinx / Wyrm / WarpX) style documentation webpage featuring sidebar search, TOC tree, breadcrumb bar, admonition boxes, Wyrm data tables, theme switcher, and author Chong Shik Park attribution.
