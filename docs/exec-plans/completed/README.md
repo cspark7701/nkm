@@ -82,3 +82,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 25. [**Milestone 25 — Task: Complete Removal of Facility Reference Metadata**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/25_task_remove_pohang_references.md)
     - Audited and sanitized all facility-specific naming references across source code, scripts, documentation, and configuration files.
+
+26. [**Milestone 26 — Task: Full Production Simulation Web Documentation Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/26_task_website_production_pipeline_docs.md)
+    - Integrated full production simulation pipeline documentation, 1-to-1 parity mapping, command-line flag table, 8-step execution breakdown, and output folder layout into `docs/index.html`.

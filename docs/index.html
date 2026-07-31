@@ -66,7 +66,14 @@
         </li>
         <li><a href="#architecture">Software Architecture</a></li>
         <li><a href="#procedures">Authoritative Procedures</a></li>
-        <li><a href="#pipeline">Full Production Pipeline</a></li>
+        <li><a href="#pipeline">Full Production Pipeline</a>
+          <ul>
+            <li><a href="#pipeline-architecture">Parity Architecture</a></li>
+            <li><a href="#pipeline-options">Command-Line Flags</a></li>
+            <li><a href="#pipeline-steps">Sequential 8-Step Breakdown</a></li>
+            <li><a href="#pipeline-structure">Output Directory Structure</a></li>
+          </ul>
+        </li>
         <li><a href="#metrics">Verification Metrics</a></li>
         <li><a href="#provenance">Data Provenance</a></li>
         <li><a href="#references">Literature & References</a></li>
@@ -255,17 +262,109 @@
 
       <!-- Section: Pipeline -->
       <section id="pipeline">
-        <h1>Single-File Full Production Pipeline</h1>
+        <h1>Single-File Full Production Pipeline & Analysis Guide</h1>
         
         <div class="source-note">
-          <strong>Production Run Commands:</strong> Use the single shell script <code>scripts/run_full_production_simulation.sh</code>.
+          <strong>Production Run Control:</strong> Automated full production simulations and analysis are executed via <code>scripts/run_full_production_simulation.sh</code> or <code>notebooks/04_full_production_simulation.ipynb</code>.
         </div>
 
-        <pre><code># Perform a DRY RUN (validates all script paths & syntax without running long simulations)
+        <h2 id="pipeline-architecture">Parity Architecture & 1-to-1 Mapping</h2>
+        <p>
+          The production suite provides two 1-to-1 matching entry points:
+        </p>
+        <ul>
+          <li><strong>Automated Shell Script:</strong> <code>scripts/run_full_production_simulation.sh</code></li>
+          <li><strong>Consolidated Jupyter Notebook:</strong> <code>notebooks/04_full_production_simulation.ipynb</code></li>
+        </ul>
+        <p>
+          Both interfaces execute identical physics calculations, parameter scans, optimization routines, and analysis post-processing using shared core modules in <code>src/nkm/</code>.
+        </p>
+
+        <h2 id="pipeline-options">Command-Line Flags & Usage</h2>
+
+        <pre><code># 1. Perform a pre-flight DRY RUN (validates input hashes, script imports, & syntax without running heavy simulations)
 ./scripts/run_full_production_simulation.sh --dry-run
 
-# Run full production pipeline in QUIET mode with 90% CPU parallelization
-./scripts/run_full_production_simulation.sh --quiet --parallel 7</code></pre>
+# 2. Run full production pipeline in QUIET mode (logs output to file while showing real-time step notifications on screen)
+./scripts/run_full_production_simulation.sh --quiet
+
+# 3. Specify custom CPU core parallel workers and output directory
+./scripts/run_full_production_simulation.sh --parallel 7 --output-dir results/my_custom_run</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Long Option</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>-d</code></td>
+              <td><code>--dry-run</code></td>
+              <td>Off</td>
+              <td>Pre-flight syntax and parameter validation of all 8 steps without executing long tracking loops.</td>
+            </tr>
+            <tr>
+              <td><code>-q</code></td>
+              <td><code>--quiet</code></td>
+              <td>Off (<code>--verbose</code>)</td>
+              <td>Displays clean real-time <code>[RUNNING]</code> / <code>[COMPLETED]</code> screen progress while routing verbose logs to file.</td>
+            </tr>
+            <tr>
+              <td><code>-v</code></td>
+              <td><code>--verbose</code></td>
+              <td>On</td>
+              <td>Prints full real-time simulation step logs directly to screen stdout.</td>
+            </tr>
+            <tr>
+              <td><code>-p</code></td>
+              <td><code>--parallel</code></td>
+              <td>90% CPU Cores</td>
+              <td>Sets parallel worker count ($N_{\text{workers}} = \max(1, \lfloor 0.9 \times N_{\text{cpu}} \rfloor)$).</td>
+            </tr>
+            <tr>
+              <td><code>-o</code></td>
+              <td><code>--output-dir</code></td>
+              <td><code>results/production_run_&lt;timestamp&gt;</code></td>
+              <td>Custom destination folder for simulation artifacts and analysis JSONs.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="pipeline-steps">Sequential 8-Step Pipeline Breakdown</h2>
+        <ul class="section-index">
+          <li><strong>Step 1: Input Hash Cataloging & Baseline Metrics</strong> — Verifies SHA-256 cryptographic hashes of scientific source files (<code>By.txt</code>, <code>kickmap_file.txt</code>, <code>K4GSR_HBIv4-1.mat</code>) and records reference optics parameters.</li>
+          <li><strong>Step 2: Field & Kick Map Cross-Validation</strong> — Fits 5th-order field polynomials, checks odd symmetry in $x$ ($\text{residual} &lt; 10^{-12}$), and validates Lorentz kick sign consistency ($\Delta x' &lt; 0$ for $x &lt; 0$).</li>
+          <li><strong>Step 3: Symplectic Slicing Convergence Scan</strong> — Evaluates thick-element RK4 symplectic integration convergence across $N_{\text{slices}} \in \{5, 10, 20, 50, 100\}$, confirming $&lt; 10^{-6}\text{ rad}$ trajectory agreement.</li>
+          <li><strong>Step 4: Multi-Turn Storage Ring Injection Dynamics Tracking</strong> — Tracks 1,000 particles across 1,000 storage ring turns over 4 kicker models (NKM Off, Ideal, Linear, RADIA Fieldmap) with physical vacuum chamber apertures ($\pm 30\text{ mm} \times \pm 15\text{ mm}$).</li>
+          <li><strong>Step 5: SLSQP Quadrupole Optics Matching</strong> — Optimizes 8 BTS quad families for target injection Twiss parameters ($\beta_x = 7.56\text{ m}, \beta_y = 12.27\text{ m}$) with SVD Jacobian decomposition.</li>
+          <li><strong>Step 6: Monte Carlo Tolerance Budget & Sensitivity Analysis</strong> — Evaluates 500 Monte Carlo seeds with quadrupole misalignments ($\sigma_{x,y} = 100\,\mu\text{m}$), roll errors ($\sigma_\phi = 0.5\text{ mrad}$), and gradient errors ($0.1\%$).</li>
+          <li><strong>Step 7: Multi-Objective MOGA NSGA-II Pareto Optimization</strong> — Executes multi-seed NSGA-II optimization balancing optics mismatch, beta peak heights ($\beta_{y,\max} \le 60\text{ m}$), and stay-clears.</li>
+          <li><strong>Step 8: Publication Data Consolidation & Paper Reproduction</strong> — Compiles figure graphics, LaTeX tables, metric summary JSON files, and provenance reports into the final output summary directory.</li>
+        </ul>
+
+        <h2 id="pipeline-structure">Output Directory & Artifact Management</h2>
+        <pre><code>results/production_run_&lt;timestamp&gt;/
+├── logs/
+│   └── production_run.log                   # Master execution log file
+├── fieldmap/
+│   └── fieldmap_validation_metrics.json     # Polynomial fit residuals & symmetry checks
+├── convergence/
+│   └── tracking_convergence_metrics.json    # Slicing step trajectory convergence metrics
+├── multiturn/
+│   └── multiturn_injection_metrics.json     # Physical aperture stay-clears & 1,000-turn capture
+├── optimization/
+│   └── bts_matching_metrics.json            # Quadrupole strengths, Twiss parameters, & SVD condition numbers
+├── tolerances/
+│   └── tolerance_study_metrics.json         # 500 Monte Carlo seed statistics & yield rates
+├── moga/
+│   └── moga_pareto_results.json             # NSGA-II Pareto optimal front metrics
+└── summary/
+    ├── paper_figures/                       # Publication figure plot graphics
+    └── paper_metrics_summary.json           # Consolidated publication summary metrics</code></pre>
       </section>
 
       <!-- Section: Metrics -->
