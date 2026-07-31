@@ -76,3 +76,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 23. [**Milestone 23 — Task 03a: Read the Docs (Sphinx / Wyrm) Project Webpage Style**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/23_task03a_readthedocs_website_style.md)
     - Converted `docs/index.html` into a Read the Docs (Sphinx / Wyrm / WarpX) style documentation webpage featuring sidebar search, TOC tree, breadcrumb bar, admonition boxes, Wyrm data tables, theme switcher, and author Chong Shik Park attribution.
+
+24. [**Milestone 24 — Task 03a: SynapticTrack Style Read the Docs Webpage Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/24_task03a_synaptictrack_style.md)
+    - Updated `docs/index.html` and `docs/style.css` to adopt the exact Read the Docs style specification from `/home/cspark/Work/simulation_codes-working/synapticTrack/docs/site/style.css`.
