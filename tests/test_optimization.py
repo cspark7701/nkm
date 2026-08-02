@@ -14,9 +14,12 @@ if str(REPO_ROOT) not in sys.path:
 from src.nkm.optimization import (
     BTSOptimizationConfig,
     BTSOptimizationEvaluator,
+    DeterministicObjective,
+    OpticsOptimizer,
     optimize_bts_quadrupoles,
     compute_sensitivity_matrix
 )
+from src.nkm.robust_optimization import RobustMonteCarloObjective
 
 
 @pytest.fixture
@@ -71,3 +74,20 @@ def test_optimization_reproducibility(opt_config):
     
     assert np.allclose(res1.optimized_strengths, res2.optimized_strengths, atol=1e-6)
     assert pytest.approx(res1.final_merit, abs=1e-6) == res2.final_merit
+
+
+def test_optics_optimizer_strategy_pattern(opt_config):
+    """Verify OpticsOptimizer execution with DeterministicObjective and RobustMonteCarloObjective."""
+    det_obj = DeterministicObjective(opt_config)
+    optimizer_det = OpticsOptimizer(objective=det_obj, config=opt_config)
+    res_det = optimizer_det.optimize(method="SLSQP", n_starts=1)
+
+    assert res_det.success is True
+    assert res_det.final_merit < res_det.initial_merit
+
+    # Verify RobustMonteCarloObjective strategy instantiation & evaluation
+    robust_obj = RobustMonteCarloObjective(opt_config, n_samples=5, seed=42)
+    robust_eval = robust_obj.evaluate(res_det.optimized_strengths)
+    assert "robust_stats" in robust_eval
+    assert "mismatch_x" in robust_eval
+

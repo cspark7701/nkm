@@ -91,3 +91,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 28. [**Milestone 28 — Refactor #2: Standardized Particle Tracking Containers (`TrackingResult`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/28_refactor_tracking_result_dataclass.md)
     - Implemented `@dataclass` `TrackingResult` container in `src/nkm/tracking.py` and updated `track_multiturn_injection()` in `src/nkm/storage_ring_injection.py`, unifying tracking output interfaces while preserving dictionary subscripting parity.
+
+29. [**Milestone 29 — Refactor #3: Optics Optimizer Strategy Pattern (`OpticsOptimizer`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/29_refactor_optics_optimizer_strategy.md)
+    - Implemented `BaseOpticsObjective` strategy interface, `DeterministicObjective`, `RobustMonteCarloObjective`, and `OpticsOptimizer` engine, decoupling objective evaluation from optimization execution.

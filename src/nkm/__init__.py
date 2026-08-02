@@ -18,5 +18,7 @@ from .paper import (
 from .fieldmap import BaseFieldMap, NKMFieldMap1D, OutOfDomainError
 from .kickmap import NKMKickMap2D
 from .tracking import TrackingResult
+from .optimization import BaseOpticsObjective, DeterministicObjective, OpticsOptimizer, BTSOptimizationEvaluator
+from .robust_optimization import RobustMonteCarloObjective
 
 

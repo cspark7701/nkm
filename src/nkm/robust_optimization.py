@@ -14,6 +14,66 @@ from scipy.optimize import minimize
 from .bts_lattice import BTSConfig, create_bts_lattice
 from .optics import compute_twiss_propagation, compute_mismatch_metric
 from .errors import ErrorBudgetConfig, sample_error_ensemble, apply_sample_errors
+from .optimization import BaseOpticsObjective, BTSOptimizationConfig, BTSNormalizedObjectives, BTSHardwareConstraints
+
+
+class RobustMonteCarloObjective(BaseOpticsObjective):
+    """
+    Robust Monte Carlo Objective Strategy for Optics Optimization.
+    
+    Evaluates optics mismatch across an error ensemble sample, returning mean / median
+    mismatch residuals for robust optics design.
+    """
+    def __init__(self,
+                 config: Optional[BTSOptimizationConfig] = None,
+                 n_samples: int = 20,
+                 seed: int = 42):
+        self.config = config or BTSOptimizationConfig()
+        self.objectives = BTSNormalizedObjectives(self.config.target_config)
+        self.constraints = BTSHardwareConstraints(self.config.constraint_config)
+        self.nominal_strengths = self.objectives.nominal_strengths
+        self.quad_names = self.objectives.quad_names
+        self.n_samples = n_samples
+        self.seed = seed
+        self.samples = sample_error_ensemble(n_samples=n_samples, seed=seed)
+
+    def compute_residual_vector(self, strengths: np.ndarray) -> np.ndarray:
+        eval_dict = self.evaluate(strengths)
+        return np.array([
+            eval_dict["mismatch_x"],
+            eval_dict["mismatch_y"],
+            eval_dict["disp_x_residual"],
+            eval_dict["disp_px_residual"]
+        ])
+
+    def evaluate(self, strengths: np.ndarray) -> Dict[str, Any]:
+        target_twiss = {
+            "beta": [self.config.target_config.target_beta_x, self.config.target_config.target_beta_y],
+            "alpha": [self.config.target_config.target_alpha_x, self.config.target_config.target_alpha_y]
+        }
+        bts_config = BTSConfig(
+            k_q11=float(strengths[0]), k_q12=float(strengths[1]), k_q13=float(strengths[2]),
+            k_q21=float(strengths[3]), k_q22=float(strengths[4]), k_q23=float(strengths[5]),
+            k_q31=float(strengths[6]), k_q32=float(strengths[7]), k_q33=float(strengths[8])
+        )
+        stats = evaluate_robustness_statistics(bts_config, target_twiss, self.samples)
+        
+        mx_p50 = stats["mismatch_x"]["p50"]
+        my_p50 = stats["mismatch_y"]["p50"]
+        merit = float(mx_p50 + my_p50)
+        
+        return {
+            "feasible": bool(stats["feasible_fraction"] > 0.8),
+            "violations": [] if stats["feasible_fraction"] > 0.8 else ["High failure rate in Monte Carlo ensemble"],
+            "merit": merit,
+            "mismatch_x": mx_p50,
+            "mismatch_y": my_p50,
+            "disp_x_residual": 0.0,
+            "disp_px_residual": 0.0,
+            "max_beta_x": stats["max_beta_x_m"]["p50"],
+            "max_beta_y": stats["max_beta_y_m"]["p50"],
+            "robust_stats": stats
+        }
 
 
 def evaluate_robustness_statistics(nominal_config: BTSConfig,

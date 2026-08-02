@@ -54,14 +54,30 @@ class BTSOptimizationResult:
     message: str
 
 
-class BTSOptimizationEvaluator:
-    """Evaluates normalized objectives, hardware bounds, and physical constraints."""
+class BaseOpticsObjective:
+    """Abstract Strategy Interface for Optics Optimization Objectives."""
+    def evaluate(self, strengths: np.ndarray) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def compute_residual_vector(self, strengths: np.ndarray) -> np.ndarray:
+        raise NotImplementedError
+
+    def compute_scalar_merit(self, strengths: np.ndarray) -> float:
+        r_vec = self.compute_residual_vector(strengths)
+        return float(np.sum(r_vec**2))
+
+
+class DeterministicObjective(BaseOpticsObjective):
+    """Deterministic single-seed optics matching objective strategy."""
     def __init__(self, config: Optional[BTSOptimizationConfig] = None):
         self.config = config or BTSOptimizationConfig()
         self.objectives = BTSNormalizedObjectives(self.config.target_config)
         self.constraints = BTSHardwareConstraints(self.config.constraint_config)
         self.nominal_strengths = self.objectives.nominal_strengths
         self.quad_names = self.objectives.quad_names
+
+    def compute_residual_vector(self, strengths: np.ndarray) -> np.ndarray:
+        return self.objectives.compute_residual_vector(strengths)
 
     def evaluate(self, strengths: np.ndarray) -> Dict[str, Any]:
         """
@@ -116,91 +132,110 @@ class BTSOptimizationEvaluator:
         }
 
 
+# Maintain BTSOptimizationEvaluator as backward-compatible alias to DeterministicObjective
+BTSOptimizationEvaluator = DeterministicObjective
+
+
+class OpticsOptimizer:
+    """
+    Unified Optics Optimization Engine using Strategy Pattern.
+    
+    Supports deterministic, robust Monte Carlo, and multi-algorithm optimization
+    routines while managing quadrupole hardware bounds and SVD Jacobian metrics.
+    """
+    def __init__(self,
+                 objective: Optional[BaseOpticsObjective] = None,
+                 config: Optional[BTSOptimizationConfig] = None):
+        self.config = config or BTSOptimizationConfig()
+        self.objective = objective or DeterministicObjective(self.config)
+
+    def optimize(self,
+                 method: str = "least_squares",
+                 n_starts: int = 1) -> BTSOptimizationResult:
+        """
+        Run constrained two-stage or direct optimization on BTS quadrupole strengths.
+        """
+        initial_k = getattr(self.objective, "nominal_strengths", np.zeros(9))
+        init_eval = self.objective.evaluate(initial_k)
+
+        start_time = time.time()
+        bounds_val = self.config.quad_bounds
+        bounds_list = [bounds_val] * 9
+
+        best_result = None
+        best_merit = float('inf')
+        rng = np.random.default_rng(self.config.random_seed)
+
+        for start_idx in range(n_starts):
+            if start_idx == 0:
+                x0 = initial_k.copy()
+            else:
+                x0 = rng.uniform(bounds_val[0], bounds_val[1], size=9)
+
+            if method in ("least_squares", "SLSQP"):
+                # Stage 1: Least Squares matching
+                ls_res = least_squares(
+                    self.objective.compute_residual_vector,
+                    x0,
+                    bounds=(bounds_val[0], bounds_val[1]),
+                    max_nfev=self.config.max_iter
+                )
+                # Stage 2: SLSQP refinement
+                opt_res = minimize(
+                    self.objective.compute_scalar_merit,
+                    ls_res.x,
+                    method="SLSQP",
+                    bounds=bounds_list,
+                    options={'maxiter': self.config.max_iter, 'ftol': 1e-6}
+                )
+            else:
+                opt_res = minimize(
+                    self.objective.compute_scalar_merit,
+                    x0,
+                    method=method,
+                    bounds=bounds_list,
+                    options={'maxiter': self.config.max_iter}
+                )
+
+            final_eval = self.objective.evaluate(opt_res.x)
+            if final_eval["merit"] < best_merit:
+                best_merit = final_eval["merit"]
+                best_result = (opt_res, final_eval)
+
+        opt_res, final_eval = best_result
+        runtime = time.time() - start_time
+
+        return BTSOptimizationResult(
+            success=bool(opt_res.success and final_eval["feasible"]),
+            method=method,
+            optimized_strengths=np.array(opt_res.x),
+            initial_merit=init_eval["merit"],
+            final_merit=final_eval["merit"],
+            initial_mismatch_x=init_eval["mismatch_x"],
+            initial_mismatch_y=init_eval["mismatch_y"],
+            final_mismatch_x=final_eval["mismatch_x"],
+            final_mismatch_y=final_eval["mismatch_y"],
+            final_max_beta_x=final_eval["max_beta_x"],
+            final_max_beta_y=final_eval["max_beta_y"],
+            final_disp_x_residual=final_eval["disp_x_residual"],
+            constraints_satisfied=final_eval["feasible"],
+            violations=final_eval["violations"],
+            iterations=getattr(opt_res, "nit", getattr(opt_res, "nfev", 0)),
+            runtime_seconds=round(runtime, 4),
+            message=str(getattr(opt_res, "message", "Completed"))
+        )
+
+
 def optimize_bts_quadrupoles(method: str = "least_squares",
                              config: Optional[BTSOptimizationConfig] = None,
                              n_starts: int = 1) -> BTSOptimizationResult:
     """
     Run constrained two-stage or direct optimization on BTS quadrupole strengths.
     
-    Methods:
-      - 'least_squares': Stage 1 Least-Squares + Stage 2 SLSQP refinement
-      - 'SLSQP': Direct SLSQP optimization
-      - 'Nelder-Mead': Direct Nelder-Mead simplex search
+    Delegates to OpticsOptimizer using DeterministicObjective strategy.
     """
-    if config is None:
-        config = BTSOptimizationConfig()
-
-    evaluator = BTSOptimizationEvaluator(config)
-    initial_k = evaluator.nominal_strengths
-    init_eval = evaluator.evaluate(initial_k)
-
-    start_time = time.time()
-    bounds_val = config.quad_bounds
-    bounds_list = [bounds_val] * 9
-
-    best_result = None
-    best_merit = float('inf')
-
-    rng = np.random.default_rng(config.random_seed)
-
-    for start_idx in range(n_starts):
-        if start_idx == 0:
-            x0 = initial_k.copy()
-        else:
-            x0 = rng.uniform(bounds_val[0], bounds_val[1], size=9)
-
-        if method in ("least_squares", "SLSQP"):
-            # Stage 1: Least Squares matching
-            ls_res = least_squares(
-                evaluator.objectives.compute_residual_vector,
-                x0,
-                bounds=(bounds_val[0], bounds_val[1]),
-                max_nfev=config.max_iter
-            )
-            # Stage 2: SLSQP refinement
-            opt_res = minimize(
-                evaluator.objectives.compute_scalar_merit,
-                ls_res.x,
-                method="SLSQP",
-                bounds=bounds_list,
-                options={'maxiter': config.max_iter, 'ftol': 1e-6}
-            )
-        else:
-            opt_res = minimize(
-                evaluator.objectives.compute_scalar_merit,
-                x0,
-                method=method,
-                bounds=bounds_list,
-                options={'maxiter': config.max_iter}
-            )
-
-        final_eval = evaluator.evaluate(opt_res.x)
-        if final_eval["merit"] < best_merit:
-            best_merit = final_eval["merit"]
-            best_result = (opt_res, final_eval)
-
-    opt_res, final_eval = best_result
-    runtime = time.time() - start_time
-
-    return BTSOptimizationResult(
-        success=bool(opt_res.success and final_eval["feasible"]),
-        method=method,
-        optimized_strengths=np.array(opt_res.x),
-        initial_merit=init_eval["merit"],
-        final_merit=final_eval["merit"],
-        initial_mismatch_x=init_eval["mismatch_x"],
-        initial_mismatch_y=init_eval["mismatch_y"],
-        final_mismatch_x=final_eval["mismatch_x"],
-        final_mismatch_y=final_eval["mismatch_y"],
-        final_max_beta_x=final_eval["max_beta_x"],
-        final_max_beta_y=final_eval["max_beta_y"],
-        final_disp_x_residual=final_eval["disp_x_residual"],
-        constraints_satisfied=final_eval["feasible"],
-        violations=final_eval["violations"],
-        iterations=getattr(opt_res, "nit", getattr(opt_res, "nfev", 0)),
-        runtime_seconds=round(runtime, 4),
-        message=str(getattr(opt_res, "message", "Completed"))
-    )
+    optimizer = OpticsOptimizer(config=config)
+    return optimizer.optimize(method=method, n_starts=n_starts)
 
 
 def compute_sensitivity_matrix(strengths: np.ndarray,
