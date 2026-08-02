@@ -17,7 +17,11 @@ from src.nkm.results_schema import (
     compute_input_data_hashes,
     compute_rms_envelope
 )
-from src.nkm.paper import run_paper_pipeline
+from src.nkm.paper import (
+    run_paper_pipeline,
+    set_publication_style,
+    PUBLICATION_COLORS
+)
 
 
 def test_input_data_hashes():
@@ -53,3 +57,15 @@ def test_paper_pipeline_execution(tmp_path):
     assert summary["input_hashes_verified"] is True
     assert summary["tables_count"] >= 2
     assert summary["figures_count"] >= 2
+
+
+def test_set_publication_style():
+    """Verify set_publication_style configures matplotlib rc_params and color palette."""
+    params = set_publication_style(font_size=11, dpi=300)
+    assert params["font.size"] == 11
+    assert params["figure.dpi"] == 300
+
+    assert "beta_x" in PUBLICATION_COLORS
+    assert "beta_y" in PUBLICATION_COLORS
+    assert "dispersion" in PUBLICATION_COLORS
+

@@ -94,3 +94,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 29. [**Milestone 29 — Refactor #3: Optics Optimizer Strategy Pattern (`OpticsOptimizer`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/29_refactor_optics_optimizer_strategy.md)
     - Implemented `BaseOpticsObjective` strategy interface, `DeterministicObjective`, `RobustMonteCarloObjective`, and `OpticsOptimizer` engine, decoupling objective evaluation from optimization execution.
+
+30. [**Milestone 30 — Refactor #4: Centralized Publication Plotting Theme (`set_publication_style`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/30_refactor_publication_plotting_theme.md)
+    - Implemented `set_publication_style()` function and `PUBLICATION_COLORS` color dictionary in `src/nkm/paper.py`, enforcing consistent Matplotlib typography, DPI, line styles, and color palettes across generated graphics.

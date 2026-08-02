@@ -26,6 +26,57 @@ from .results_schema import (
 )
 
 
+PUBLICATION_COLORS = {
+    "beta_x": "#1f77b4",        # Blue
+    "beta_y": "#d62728",        # Red
+    "dispersion": "#2ca02c",    # Green
+    "aperture": "#333333",      # Dark Charcoal
+    "injected": "#ff7f0e",      # Orange
+    "stored": "#9467bd",        # Purple
+    "ideal": "#2ca02c",         # Green
+    "fieldmap": "#d62728",      # Red
+}
+
+
+def set_publication_style(font_size: int = 10,
+                          dpi: int = 300,
+                          use_latex_fonts: bool = False) -> Dict[str, Any]:
+    """
+    Centralized Publication Plotting Theme Configurator.
+    
+    Enforces consistent font sizes, DPI, line widths, grid opacity, and color palettes
+    across all publication figures generated in the project.
+    """
+    params = {
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica', 'Lato'],
+        'font.size': font_size,
+        'axes.labelsize': font_size + 1,
+        'axes.titlesize': font_size + 2,
+        'xtick.labelsize': font_size,
+        'ytick.labelsize': font_size,
+        'legend.fontsize': font_size - 1,
+        'figure.titlesize': font_size + 3,
+        'figure.dpi': dpi,
+        'savefig.dpi': dpi,
+        'figure.autolayout': True,
+        'axes.grid': True,
+        'grid.linestyle': ':',
+        'grid.alpha': 0.6,
+        'lines.linewidth': 1.8,
+        'lines.markersize': 5,
+    }
+
+    if use_latex_fonts:
+        params.update({
+            'text.usetex': True,
+            'font.family': 'serif',
+        })
+
+    plt.rcParams.update(params)
+    return params
+
+
 def generate_paper_tables(repo_root: Path, output_dir: Path) -> Dict[str, str]:
     """
     Generate publication tables dynamically from optics calculations and configuration objects.
@@ -90,15 +141,7 @@ def generate_paper_figures(repo_root: Path, output_dir: Path) -> List[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     generated_files = []
 
-    plt.rcParams.update({
-        'font.family': 'sans-serif',
-        'font.size': 10,
-        'axes.labelsize': 11,
-        'axes.titlesize': 12,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
-        'figure.autolayout': True
-    })
+    set_publication_style(font_size=10, dpi=300)
 
     # 1. BTS Optics Propagation
     nominal_config = BTSConfig()
@@ -111,14 +154,14 @@ def generate_paper_figures(repo_root: Path, output_dir: Path) -> List[Path]:
     dx = prop["dispersion"][:, 0]
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
-    ax1.plot(s, beta_x, 'b-', label=r'$\beta_x$ (m)')
-    ax1.plot(s, beta_y, 'r--', label=r'$\beta_y$ (m)')
+    ax1.plot(s, beta_x, color=PUBLICATION_COLORS["beta_x"], linestyle='-', label=r'$\beta_x$ (m)')
+    ax1.plot(s, beta_y, color=PUBLICATION_COLORS["beta_y"], linestyle='--', label=r'$\beta_y$ (m)')
     ax1.set_ylabel(r'$\beta$ [m]')
     ax1.set_title('BTS Optical Functions')
     ax1.grid(True, linestyle=':', alpha=0.6)
     ax1.legend(loc='upper right')
 
-    ax2.plot(s, dx, 'g-', label=r'$D_x$ (m)')
+    ax2.plot(s, dx, color=PUBLICATION_COLORS["dispersion"], linestyle='-', label=r'$D_x$ (m)')
     ax2.set_xlabel('s [m]')
     ax2.set_ylabel(r'$D_x$ [m]')
     ax2.grid(True, linestyle=':', alpha=0.6)
@@ -135,12 +178,12 @@ def generate_paper_figures(repo_root: Path, output_dir: Path) -> List[Path]:
     env_x_mm = compute_rms_envelope(beta_x, dx, emit_mrad=1e-7, espread=1.1e-3, n_sigma=3.0) * 1e3
     env_y_mm = compute_rms_envelope(beta_y, np.zeros_like(beta_y), emit_mrad=1e-8, espread=1.1e-3, n_sigma=3.0) * 1e3
 
-    ax.plot(s, env_x_mm, 'r-', label=r'Horizontal Total Envelope ($3\sigma_x$)')
-    ax.plot(s, -env_x_mm, 'r-')
-    ax.plot(s, env_y_mm, 'b-', label=r'Vertical Total Envelope ($3\sigma_y$)')
-    ax.plot(s, -env_y_mm, 'b-')
-    ax.axhline(19.35, color='black', linestyle=':', label='Pipe Aperture ($\pm 19.35$ mm)')
-    ax.axhline(-19.35, color='black', linestyle=':')
+    ax.plot(s, env_x_mm, color=PUBLICATION_COLORS["beta_y"], linestyle='-', label=r'Horizontal Total Envelope ($3\sigma_x$)')
+    ax.plot(s, -env_x_mm, color=PUBLICATION_COLORS["beta_y"], linestyle='-')
+    ax.plot(s, env_y_mm, color=PUBLICATION_COLORS["beta_x"], linestyle='-', label=r'Vertical Total Envelope ($3\sigma_y$)')
+    ax.plot(s, -env_y_mm, color=PUBLICATION_COLORS["beta_x"], linestyle='-')
+    ax.axhline(19.35, color=PUBLICATION_COLORS["aperture"], linestyle=':', label='Pipe Aperture ($\pm 19.35$ mm)')
+    ax.axhline(-19.35, color=PUBLICATION_COLORS["aperture"], linestyle=':')
 
     ax.set_xlabel(r'Longitudinal Coordinate $s$ [m]')
     ax.set_ylabel(r'Beam Envelope [mm]')
