@@ -17,6 +17,7 @@ from src.nkm.storage_ring_injection import (
     track_multiturn_injection,
     compute_multiturn_injection_metrics
 )
+from src.nkm.tracking import TrackingResult
 from src.nkm.beam import generate_6d_beam
 from src.nkm.kickmap import NKMKickMap2D
 
@@ -82,3 +83,27 @@ def test_multiturn_tracking_models(ring_and_nkm, kickmap_obj):
         assert "capture_efficiency" in metrics
         assert 0.0 <= metrics["capture_efficiency"] <= 1.0
         assert "stored_beam_centroid_oscillation_mm" in metrics
+
+        # Verify TrackingResult dataclass type and dual access (attribute + dict)
+        assert isinstance(inj_res, TrackingResult)
+        assert isinstance(stored_res, TrackingResult)
+        assert inj_res.capture_efficiency == inj_res["capture_efficiency"]
+        assert inj_res.survival_fraction == inj_res["survival_fraction"]
+        assert np.array_equal(inj_res.final_beam, inj_res["final_beam"], equal_nan=True)
+
+
+def test_tracking_result_from_beam_constructor():
+    """Verify TrackingResult.from_beam factory constructor."""
+    beam = generate_6d_beam(
+        n_particles=20,
+        beta_x=10.0, alpha_x=0.0, emit_x=1e-8,
+        beta_y=5.0, alpha_y=0.0, emit_y=1e-9,
+        seed=123
+    )
+    res = TrackingResult.from_beam(beam, metadata={"test": "ok"})
+    assert isinstance(res, TrackingResult)
+    assert res.n_particles == 20
+    assert res.survived_particles == 20
+    assert res.survival_fraction == 1.0
+    assert res["metadata"]["test"] == "ok"
+

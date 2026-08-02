@@ -25,7 +25,7 @@ from .beam import (
     compute_projected_emittance,
     compute_beam_statistics
 )
-from .tracking import track_nkm_thin_kick, track_nkm_thick_symplectic
+from .tracking import track_nkm_thin_kick, track_nkm_thick_symplectic, TrackingResult
 from .kickmap import NKMKickMap2D
 
 
@@ -243,18 +243,23 @@ def track_multiturn_injection(beam: np.ndarray,
 
     final_stats = compute_beam_statistics(current_beam)
 
-    return {
-        "kicker_model": kicker_model,
-        "n_turns": n_turns,
-        "n_particles": n_particles,
-        "final_beam": current_beam,
-        "final_stats": final_stats,
-        "turn_survived": turn_survived,
-        "turn_centroids": np.array(turn_centroids),
-        "turn_emittances": np.array(turn_emittances),
-        "loss_log": loss_log,
-        "capture_efficiency": final_stats["survival_fraction"]
-    }
+    return TrackingResult(
+        particles_6d=current_beam,
+        n_particles=n_particles,
+        survived_particles=int(final_stats["survived_particles"]),
+        survival_fraction=float(final_stats["survival_fraction"]),
+        centroid=final_stats["centroid"],
+        emittance_x_mrad=float(final_stats["emittance_x_mrad"]),
+        emittance_y_mrad=float(final_stats["emittance_y_mrad"]),
+        centroid_history=np.array(turn_centroids),
+        emittance_history=np.array(turn_emittances),
+        survival_history=turn_survived,
+        loss_log=loss_log,
+        metadata={
+            "kicker_model": kicker_model,
+            "n_turns": n_turns,
+        }
+    )
 
 
 def compute_multiturn_injection_metrics(injected_results: Dict[str, Any],

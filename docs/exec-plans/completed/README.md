@@ -88,3 +88,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 27. [**Milestone 27 — Refactor #1: BaseFieldMap Unified Abstract Base Class**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/27_refactor_base_fieldmap.md)
     - Created `BaseFieldMap` abstract base class in `src/nkm/fieldmap.py` encapsulating domain bounds checking, metadata handling, and file SHA-256 cryptographic verification. Refactored `NKMFieldMap1D` and `NKMKickMap2D` to inherit from `BaseFieldMap`.
+
+28. [**Milestone 28 — Refactor #2: Standardized Particle Tracking Containers (`TrackingResult`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/28_refactor_tracking_result_dataclass.md)
+    - Implemented `@dataclass` `TrackingResult` container in `src/nkm/tracking.py` and updated `track_multiturn_injection()` in `src/nkm/storage_ring_injection.py`, unifying tracking output interfaces while preserving dictionary subscripting parity.

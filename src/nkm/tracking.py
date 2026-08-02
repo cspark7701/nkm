@@ -5,7 +5,8 @@ Provides centered thin-kick, thick symplectic split integration, and genuine RK4
 tracking utilities for 6D particle distributions through the NKM and storage ring injection region.
 """
 
-from typing import Dict, Tuple, Optional, Any, Callable, Union
+from dataclasses import dataclass, field
+from typing import Dict, Tuple, Optional, Any, Callable, Union, List, Iterator
 import numpy as np
 
 from .units import (
@@ -16,6 +17,105 @@ from .units import (
     ELECTRON_CHARGE_C
 )
 from .integrators import SymplecticSplitIntegrator, LorentzRK4Integrator
+
+
+@dataclass
+class TrackingResult:
+    """
+    Standardized Particle Tracking Result Container.
+    
+    Unifies tracking output metrics across transfer lines, single kicks, and multi-turn storage ring tracking.
+    Supports both attribute access (res.survival_fraction) and dict indexing (res['survival_fraction'])
+    for 100% backward compatibility.
+    """
+    particles_6d: np.ndarray
+    n_particles: int
+    survived_particles: int
+    survival_fraction: float
+    centroid: Optional[Dict[str, float]] = None
+    emittance_x_mrad: float = 0.0
+    emittance_y_mrad: float = 0.0
+    centroid_history: Optional[np.ndarray] = None
+    emittance_history: Optional[np.ndarray] = None
+    survival_history: Optional[List[int]] = None
+    loss_log: Optional[List[Dict[str, Any]]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_beam(cls,
+                  beam: np.ndarray,
+                  centroid_history: Optional[np.ndarray] = None,
+                  emittance_history: Optional[np.ndarray] = None,
+                  survival_history: Optional[List[int]] = None,
+                  loss_log: Optional[List[Dict[str, Any]]] = None,
+                  metadata: Optional[Dict[str, Any]] = None) -> "TrackingResult":
+        """Construct a TrackingResult directly from a 6D beam array and compute beam statistics."""
+        from .beam import compute_beam_statistics
+        stats = compute_beam_statistics(beam)
+        return cls(
+            particles_6d=beam,
+            n_particles=int(beam.shape[1]),
+            survived_particles=int(stats["survived_particles"]),
+            survival_fraction=float(stats["survival_fraction"]),
+            centroid=stats["centroid"],
+            emittance_x_mrad=float(stats["emittance_x_mrad"]),
+            emittance_y_mrad=float(stats["emittance_y_mrad"]),
+            centroid_history=centroid_history,
+            emittance_history=emittance_history,
+            survival_history=survival_history,
+            loss_log=loss_log or [],
+            metadata=metadata or {}
+        )
+
+    @property
+    def final_beam(self) -> np.ndarray:
+        return self.particles_6d
+
+    @property
+    def capture_efficiency(self) -> float:
+        return self.survival_fraction
+
+    @property
+    def final_stats(self) -> Dict[str, Any]:
+        return {
+            "n_particles": self.n_particles,
+            "survived_particles": self.survived_particles,
+            "survival_fraction": self.survival_fraction,
+            "centroid": self.centroid,
+            "emittance_x_mrad": self.emittance_x_mrad,
+            "emittance_y_mrad": self.emittance_y_mrad,
+        }
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert TrackingResult into dictionary format for backward compatibility."""
+        d = {
+            "particles_6d": self.particles_6d,
+            "final_beam": self.particles_6d,
+            "n_particles": self.n_particles,
+            "survived_particles": self.survived_particles,
+            "survival_fraction": self.survival_fraction,
+            "capture_efficiency": self.survival_fraction,
+            "centroid": self.centroid,
+            "emittance_x_mrad": self.emittance_x_mrad,
+            "emittance_y_mrad": self.emittance_y_mrad,
+            "final_stats": self.final_stats,
+            "turn_centroids": self.centroid_history,
+            "turn_emittances": self.emittance_history,
+            "turn_survived": self.survival_history,
+            "loss_log": self.loss_log,
+            "metadata": self.metadata,
+        }
+        d.update(self.metadata)
+        return d
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.to_dict()
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.to_dict().get(key, default)
 
 
 def track_nkm_thin_kick(beam: np.ndarray,
