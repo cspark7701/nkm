@@ -6,13 +6,44 @@ rigidity calculations, and sign conventions for NKM magnetic fields and kicks.
 """
 
 from dataclasses import dataclass
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, NewType
 import numpy as np
+
+# Physical NewType unit aliases
+Meters = NewType("Meters", float)
+Millimeters = NewType("Millimeters", float)
+Radians = NewType("Radians", float)
+Milliradians = NewType("Milliradians", float)
+Tesla = NewType("Tesla", float)
+TeslaMeters = NewType("TeslaMeters", float)
+GigaelectronVolts = NewType("GigaelectronVolts", float)
+ElectronVolts = NewType("ElectronVolts", float)
 
 # Physical constants in SI units
 SPEED_OF_LIGHT_MS: float = 299792458.0
 ELEMENTARY_CHARGE_C: float = 1.602176634e-19
 ELECTRON_CHARGE_C: float = -1.602176634e-19
+
+
+def validate_positive(val: float, param_name: str) -> float:
+    """Validate that a numerical parameter is strictly positive (> 0)."""
+    if val <= 0:
+        raise ValueError(f"Parameter '{param_name}' must be positive, got {val}")
+    return float(val)
+
+
+def validate_non_zero(val: float, param_name: str) -> float:
+    """Validate that a numerical parameter is non-zero."""
+    if val == 0:
+        raise ValueError(f"Parameter '{param_name}' cannot be zero")
+    return float(val)
+
+
+def validate_finite(val: Union[float, np.ndarray], param_name: str) -> Union[float, np.ndarray]:
+    """Validate that value(s) are finite (no NaN or Inf)."""
+    if not np.all(np.isfinite(val)):
+        raise ValueError(f"Parameter '{param_name}' contains non-finite values (NaN or Inf): {val}")
+    return val
 
 
 @dataclass(frozen=True)
@@ -52,21 +83,20 @@ class KickMapMetadata:
             raise ValueError(f"value_type 'kick_angle' requires 'rad' or 'mrad', got '{self.value_unit}'")
 
 
-def compute_rigidity(beam_energy_eV: float, particle_charge_C: float = ELECTRON_CHARGE_C) -> float:
+def compute_rigidity(beam_energy_eV: Union[float, ElectronVolts],
+                     particle_charge_C: float = ELECTRON_CHARGE_C) -> TeslaMeters:
     """
     Calculate magnetic rigidity B*rho in T*m.
     
     B*rho = p0 / |q| = E_eV * e / (|q| * c)
     For relativistic electron (|q| = e): B*rho = E_eV / c
     """
-    if beam_energy_eV <= 0:
-        raise ValueError(f"beam_energy_eV must be positive, got {beam_energy_eV}")
-    charge_abs = abs(particle_charge_C)
-    if charge_abs == 0:
-        raise ValueError("particle_charge_C cannot be zero")
+    validate_positive(float(beam_energy_eV), "beam_energy_eV")
+    validate_non_zero(float(particle_charge_C), "particle_charge_C")
     
-    rigidity = (beam_energy_eV * ELEMENTARY_CHARGE_C) / (charge_abs * SPEED_OF_LIGHT_MS)
-    return float(rigidity)
+    charge_abs = abs(particle_charge_C)
+    rigidity = (float(beam_energy_eV) * ELEMENTARY_CHARGE_C) / (charge_abs * SPEED_OF_LIGHT_MS)
+    return TeslaMeters(float(rigidity))
 
 
 def convert_coordinate(val: Union[float, np.ndarray], from_unit: str, to_unit: str = "m") -> Union[float, np.ndarray]:

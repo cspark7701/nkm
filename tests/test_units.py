@@ -13,6 +13,13 @@ from nkm.units import (
     convert_kick_angle,
     integrated_field_to_kick,
     kick_to_integrated_field,
+    validate_positive,
+    validate_non_zero,
+    validate_finite,
+    Meters,
+    Radians,
+    TeslaMeters,
+    ElectronVolts,
     ELECTRON_CHARGE_C,
     ELEMENTARY_CHARGE_C,
     SPEED_OF_LIGHT_MS
@@ -26,10 +33,10 @@ def test_rigidity_computation():
     expected = 4.0e9 / SPEED_OF_LIGHT_MS
     assert pytest.approx(brho, rel=1e-6) == expected
 
-    with pytest.raises(ValueError, match="beam_energy_eV must be positive"):
+    with pytest.raises(ValueError, match="must be positive"):
         compute_rigidity(-1.0)
 
-    with pytest.raises(ValueError, match="particle_charge_C cannot be zero"):
+    with pytest.raises(ValueError, match="cannot be zero"):
         compute_rigidity(4.0e9, particle_charge_C=0.0)
 
 
@@ -120,3 +127,28 @@ def test_rejection_of_ambiguous_input():
 
     with pytest.raises(ValueError, match="beam_energy_eV must be provided"):
         integrated_field_to_kick(0.05, meta_no_energy)
+
+
+def test_physics_unit_types_and_validation_guards():
+    """Verify NewType unit alias creation and validation guard behavior."""
+    dist_m = Meters(0.525)
+    angle_rad = Radians(0.005)
+    energy = ElectronVolts(4.0e9)
+
+    assert dist_m == 0.525
+    assert angle_rad == 0.005
+    assert energy == 4.0e9
+
+    assert validate_positive(10.0, "param") == 10.0
+    with pytest.raises(ValueError, match="must be positive"):
+        validate_positive(-5.0, "param")
+
+    assert validate_non_zero(2.5, "param") == 2.5
+    with pytest.raises(ValueError, match="cannot be zero"):
+        validate_non_zero(0.0, "param")
+
+    arr = np.array([1.0, 2.0, 3.0])
+    assert np.array_equal(validate_finite(arr, "arr"), arr)
+    with pytest.raises(ValueError, match="contains non-finite values"):
+        validate_finite(np.array([1.0, np.nan, 3.0]), "nan_arr")
+

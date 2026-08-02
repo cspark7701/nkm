@@ -97,3 +97,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 30. [**Milestone 30 — Refactor #4: Centralized Publication Plotting Theme (`set_publication_style`)**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/30_refactor_publication_plotting_theme.md)
     - Implemented `set_publication_style()` function and `PUBLICATION_COLORS` color dictionary in `src/nkm/paper.py`, enforcing consistent Matplotlib typography, DPI, line styles, and color palettes across generated graphics.
+
+31. [**Milestone 31 — Refactor #5: Type Aliases & Physics Unit Validation Guards**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/31_refactor_unit_types_and_validation_guards.md)
+    - Introduced physical `NewType` unit aliases (`Meters`, `Radians`, `TeslaMeters`, `ElectronVolts`) and explicit validation guard functions (`validate_positive`, `validate_non_zero`, `validate_finite`) across `src/nkm/units.py`.

@@ -20,6 +20,20 @@ from .paper import (
 from .fieldmap import BaseFieldMap, NKMFieldMap1D, OutOfDomainError
 from .kickmap import NKMKickMap2D
 from .tracking import TrackingResult
+from .units import (
+    Meters,
+    Millimeters,
+    Radians,
+    Milliradians,
+    Tesla,
+    TeslaMeters,
+    GigaelectronVolts,
+    ElectronVolts,
+    validate_positive,
+    validate_non_zero,
+    validate_finite,
+    compute_rigidity
+)
 from .optimization import BaseOpticsObjective, DeterministicObjective, OpticsOptimizer, BTSOptimizationEvaluator
 from .robust_optimization import RobustMonteCarloObjective
 
