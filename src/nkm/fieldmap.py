@@ -14,9 +14,91 @@ from scipy.interpolate import interp1d
 from .units import KickMapMetadata, compute_rigidity, convert_coordinate, convert_kick_angle
 
 
+import hashlib
+
+
 class OutOfDomainError(ValueError):
     """Raised when querying field values outside tabulated bounds."""
     pass
+
+
+class BaseFieldMap:
+    """
+    Abstract Base Class for 1D and 2D Magnetic Field & Kick Map Evaluators.
+    
+    Provides common domain bounds checking, file integrity verification (SHA-256),
+    metadata handling, and symmetry evaluation interfaces.
+    """
+    def __init__(self,
+                 x_min: float,
+                 x_max: float,
+                 y_min: Optional[float] = None,
+                 y_max: Optional[float] = None,
+                 allow_extrapolation: bool = False,
+                 metadata: Optional[KickMapMetadata] = None,
+                 filepath: Optional[Union[str, Path]] = None):
+        self.x_min = float(x_min)
+        self.x_max = float(x_max)
+        self.y_min = float(y_min) if y_min is not None else None
+        self.y_max = float(y_max) if y_max is not None else None
+        self.allow_extrapolation = allow_extrapolation
+        self.metadata = metadata
+        self.filepath = Path(filepath) if filepath else None
+
+    def check_domain_bounds(self,
+                            x: Union[float, np.ndarray],
+                            y: Optional[Union[float, np.ndarray]] = None) -> None:
+        """
+        Validate whether (x, y) coordinates fall within tabulated map domain bounds.
+        
+        Raises OutOfDomainError if points fall outside domain bounds and allow_extrapolation is False.
+        """
+        if self.allow_extrapolation:
+            return
+
+        x_arr = np.asarray(x)
+        out_x = (x_arr < self.x_min) | (x_arr > self.x_max)
+        if np.any(out_x):
+            raise OutOfDomainError(
+                f"x values out of range [{self.x_min}, {self.x_max}]: {x_arr[out_x]}"
+            )
+
+        if y is not None and self.y_min is not None and self.y_max is not None:
+            y_arr = np.asarray(y)
+            out_y = (y_arr < self.y_min) | (y_arr > self.y_max)
+            if np.any(out_y):
+                raise OutOfDomainError(
+                    f"y values out of range [{self.y_min}, {self.y_max}]: {y_arr[out_y]}"
+                )
+
+    def compute_file_hash(self, filepath: Optional[Union[str, Path]] = None, algorithm: str = "sha256") -> str:
+        """
+        Compute cryptographic hash (default SHA-256) of the map file.
+        """
+        target_path = Path(filepath) if filepath else self.filepath
+        if not target_path or not target_path.is_file():
+            raise FileNotFoundError(f"Map file path not found: {target_path}")
+
+        hasher = hashlib.new(algorithm)
+        with open(target_path, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+
+    def verify_file_hash(self, expected_hash: str, algorithm: str = "sha256") -> bool:
+        """
+        Verify that map file hash matches an expected hash checksum string.
+        """
+        computed = self.compute_file_hash(algorithm=algorithm)
+        return computed.lower() == expected_hash.lower()
+
+    @property
+    def domain_bounds(self) -> Dict[str, Tuple[float, float]]:
+        """Return dict of domain bounds for x (and y if applicable)."""
+        bounds = {"x": (self.x_min, self.x_max)}
+        if self.y_min is not None and self.y_max is not None:
+            bounds["y"] = (self.y_min, self.y_max)
+        return bounds
 
 
 def load_1d_fieldmap(filepath: Union[str, Path],
@@ -112,29 +194,35 @@ def validate_1d_fieldmap(x: np.ndarray, by: np.ndarray) -> Dict[str, Any]:
     }
 
 
-class NKMFieldMap1D:
+class NKMFieldMap1D(BaseFieldMap):
     """
     1D NKM Field Map Interpolator with strict domain checking, explicit metadata, and integrated kick utilities.
     """
     def __init__(self, x: np.ndarray, by: np.ndarray,
                  allow_extrapolation: bool = False,
-                 metadata: Optional[KickMapMetadata] = None):
+                 metadata: Optional[KickMapMetadata] = None,
+                 filepath: Optional[Union[str, Path]] = None):
         val = validate_1d_fieldmap(x, by)
         if not val["valid"]:
             raise ValueError(f"Invalid 1D field map data: {val}")
             
-        self.x = x
-        self.by = by
-        self.x_min = float(x.min())
-        self.x_max = float(x.max())
-        self.allow_extrapolation = allow_extrapolation
-        
-        self.metadata = metadata or KickMapMetadata(
+        meta = metadata or KickMapMetadata(
             coordinate_unit="m",
             value_type="field",
             value_unit="T",
             beam_energy_eV=4.0e9
         )
+
+        super().__init__(
+            x_min=float(x.min()),
+            x_max=float(x.max()),
+            allow_extrapolation=allow_extrapolation,
+            metadata=meta,
+            filepath=filepath
+        )
+        
+        self.x = x
+        self.by = by
         
         fill_val = "extrapolate" if allow_extrapolation else np.nan
         self._interp_linear = interp1d(x, by, kind='linear', bounds_error=False, fill_value=fill_val)
@@ -146,14 +234,10 @@ class NKMFieldMap1D:
         
         Raises OutOfDomainError if points are outside bounds and allow_extrapolation is False.
         """
-        x_arr = np.asarray(x_eval)
-        out_of_bounds = (x_arr < self.x_min) | (x_arr > self.x_max)
-        
-        if np.any(out_of_bounds) and not self.allow_extrapolation:
-            raise OutOfDomainError(f"x values out of range [{self.x_min}, {self.x_max}]: {x_arr[out_of_bounds]}")
+        self.check_domain_bounds(x_eval)
             
         interp_fn = self._interp_cubic if method == 'cubic' else self._interp_linear
-        res = interp_fn(x_arr)
+        res = interp_fn(x_eval)
         
         if np.ndim(x_eval) == 0:
             return float(res)

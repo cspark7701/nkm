@@ -15,5 +15,7 @@ from .paper import (
     generate_paper_figures,
     run_paper_pipeline
 )
+from .fieldmap import BaseFieldMap, NKMFieldMap1D, OutOfDomainError
+from .kickmap import NKMKickMap2D
 
 

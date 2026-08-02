@@ -85,3 +85,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 26. [**Milestone 26 — Task: Full Production Simulation Web Documentation Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/26_task_website_production_pipeline_docs.md)
     - Integrated full production simulation pipeline documentation, 1-to-1 parity mapping, command-line flag table, 8-step execution breakdown, and output folder layout into `docs/index.html`.
+
+27. [**Milestone 27 — Refactor #1: BaseFieldMap Unified Abstract Base Class**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/27_refactor_base_fieldmap.md)
+    - Created `BaseFieldMap` abstract base class in `src/nkm/fieldmap.py` encapsulating domain bounds checking, metadata handling, and file SHA-256 cryptographic verification. Refactored `NKMFieldMap1D` and `NKMKickMap2D` to inherit from `BaseFieldMap`.

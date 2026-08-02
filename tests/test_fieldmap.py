@@ -14,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
 from src.nkm.fieldmap import (
     load_1d_fieldmap,
     validate_1d_fieldmap,
+    BaseFieldMap,
     NKMFieldMap1D,
     OutOfDomainError
 )
@@ -123,3 +124,24 @@ def test_lorentz_kick_sign(kickmap_path):
     lorentz = kmap.verify_lorentz_kick_sign(x_offset_m=-0.010)
     assert lorentz["sign_verified"] is True
     assert lorentz["kx_value"] < 0.0  # negative kick for x < 0 in injection region
+
+
+def test_base_fieldmap_inheritance_and_hashing(by_txt_path, kickmap_path):
+    """Verify BaseFieldMap inheritance, domain bounds property, and file hash verification."""
+    x_by, by_vals = load_1d_fieldmap(by_txt_path)
+    fmap = NKMFieldMap1D(x_by, by_vals, filepath=by_txt_path)
+    kmap = NKMKickMap2D(kickmap_path)
+
+    assert isinstance(fmap, BaseFieldMap)
+    assert isinstance(kmap, BaseFieldMap)
+
+    assert "x" in fmap.domain_bounds
+    assert "x" in kmap.domain_bounds and "y" in kmap.domain_bounds
+
+    # Check SHA-256 hash verification
+    expected_by_hash = "fa7be11ac01ab09826c997a7855050aa533c9ad5a2478684463dd9afaabcc305"
+    assert fmap.verify_file_hash(expected_by_hash) is True
+
+    expected_kick_hash = "5c1a3f1437cec79917515eb13443fc176550b9040553811b644db02412c2e42b"
+    assert kmap.verify_file_hash(expected_kick_hash) is True
+
