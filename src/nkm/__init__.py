@@ -32,7 +32,9 @@ from .units import (
     validate_positive,
     validate_non_zero,
     validate_finite,
-    compute_rigidity
+    compute_rigidity,
+    integrated_field_to_transverse_kicks,
+    transverse_kicks_to_integrated_field
 )
 from .optimization import BaseOpticsObjective, DeterministicObjective, OpticsOptimizer, BTSOptimizationEvaluator
 from .robust_optimization import RobustMonteCarloObjective

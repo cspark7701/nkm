@@ -88,3 +88,31 @@ def test_slice_convergence():
     # Error must decrease monotonically with slice refinement
     assert errors[-2] < errors[0]
     assert errors[-1] < 1e-7
+
+
+def test_two_plane_thin_thick_kick_agreement():
+    """Verify two-plane (Bx, By) thin-kick vs. thick-integrator agreement for a uniform field."""
+    B0x = 0.05  # T
+    B0y = 0.146 # T
+    length_m = 0.525
+    energy_GeV = 4.0
+    brho = compute_rigidity(energy_GeV * 1e9, ELECTRON_CHARGE_C)
+
+    def uniform_2d_field(x, y, z):
+        return np.full_like(x, B0y), np.full_like(x, B0x)
+
+    # Electron: Delta x' = - B0y * L / B_rho, Delta y' = + B0x * L / B_rho
+    exp_dxp = - B0y * length_m / brho
+    exp_dyp = + B0x * length_m / brho
+
+    beam_in = np.zeros((6, 1))
+
+    beam_sym = track_nkm_thick_symplectic(beam_in, uniform_2d_field, length_m=length_m, n_slices=100, energy_GeV=energy_GeV)
+    beam_rk4 = track_nkm_thick_rk4(beam_in, uniform_2d_field, length_m=length_m, n_slices=100, energy_GeV=energy_GeV)
+
+    assert pytest.approx(beam_sym[1, 0], rel=1e-4) == exp_dxp
+    assert pytest.approx(beam_sym[3, 0], rel=1e-4) == exp_dyp
+
+    assert pytest.approx(beam_rk4[1, 0], rel=1e-4) == exp_dxp
+    assert pytest.approx(beam_rk4[3, 0], rel=1e-4) == exp_dyp
+

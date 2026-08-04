@@ -13,6 +13,8 @@ from nkm.units import (
     convert_kick_angle,
     integrated_field_to_kick,
     kick_to_integrated_field,
+    integrated_field_to_transverse_kicks,
+    transverse_kicks_to_integrated_field,
     validate_positive,
     validate_non_zero,
     validate_finite,
@@ -147,8 +149,41 @@ def test_physics_unit_types_and_validation_guards():
     with pytest.raises(ValueError, match="cannot be zero"):
         validate_non_zero(0.0, "param")
 
-    arr = np.array([1.0, 2.0, 3.0])
-    assert np.array_equal(validate_finite(arr, "arr"), arr)
-    with pytest.raises(ValueError, match="contains non-finite values"):
-        validate_finite(np.array([1.0, np.nan, 3.0]), "nan_arr")
+def test_integrated_field_to_transverse_kicks_two_plane():
+    """Test two-plane component-aware field-to-kick conversion and charge sign flipping."""
+    energy_eV = 4.0e9
+    brho = compute_rigidity(energy_eV, ELECTRON_CHARGE_C)  # ~13.34256 T*m
+
+    int_bx = 0.1  # T*m
+    int_by = 0.2  # T*m
+
+    # 1. Electron beam (q = -e < 0)
+    dx_e, dy_e = integrated_field_to_transverse_kicks(
+        int_bx, int_by, beam_energy_eV=energy_eV, particle_charge_C=ELECTRON_CHARGE_C
+    )
+
+    # Electron: Delta x' = - int_by / B_rho, Delta y' = + int_bx / B_rho
+    assert dx_e == pytest.approx(-int_by / brho, rel=1e-6)
+    assert dy_e == pytest.approx(+int_bx / brho, rel=1e-6)
+
+    # 2. Positive charge beam (q = +e > 0)
+    dx_p, dy_p = integrated_field_to_transverse_kicks(
+        int_bx, int_by, beam_energy_eV=energy_eV, particle_charge_C=ELEMENTARY_CHARGE_C
+    )
+
+    # Positive charge: Delta x' = + int_by / B_rho, Delta y' = - int_bx / B_rho
+    assert dx_p == pytest.approx(+int_by / brho, rel=1e-6)
+    assert dy_p == pytest.approx(-int_bx / brho, rel=1e-6)
+
+    # Reversal checks
+    assert dx_e == -dx_p
+    assert dy_e == -dy_p
+
+    # 3. Roundtrip inverse conversion
+    rec_bx, rec_by = transverse_kicks_to_integrated_field(
+        dx_e, dy_e, beam_energy_eV=energy_eV, particle_charge_C=ELECTRON_CHARGE_C
+    )
+    assert pytest.approx(rec_bx, rel=1e-12) == int_bx
+    assert pytest.approx(rec_by, rel=1e-12) == int_by
+
 

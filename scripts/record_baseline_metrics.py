@@ -341,5 +341,7 @@ Python Version: `{metrics['metadata']['python_version']}` | AT Version: `{metric
     print(f"Runtime: {execution_time:.3f}s")
 
 
+main = record_baseline
+
 if __name__ == "__main__":
     record_baseline()

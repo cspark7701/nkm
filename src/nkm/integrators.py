@@ -8,7 +8,12 @@ numerical integrators for tracking relativistic beam distributions through thick
 from typing import Dict, Tuple, Optional, Any, Callable, Union
 import numpy as np
 
-from .units import compute_rigidity, ELECTRON_CHARGE_C, KickMapMetadata
+from .units import (
+    compute_rigidity,
+    integrated_field_to_transverse_kicks,
+    ELECTRON_CHARGE_C,
+    KickMapMetadata
+)
 
 
 class SymplecticSplitIntegrator:
@@ -66,11 +71,13 @@ class SymplecticSplitIntegrator:
             by_val = by_val * self.scale_factor
             bx_val = bx_val * self.scale_factor
 
-            # Deflection angles in radians
-            # Delta x' = (q / |q|) * (By * dz) / B_rho
-            # Delta y' = - (q / |q|) * (Bx * dz) / B_rho
-            delta_xp = self.charge_sign * (by_val * dz) / self.brho
-            delta_yp = - self.charge_sign * (bx_val * dz) / self.brho
+            # Deflection angles in radians via component-aware unified helper
+            delta_xp, delta_yp = integrated_field_to_transverse_kicks(
+                int_bx_t_m=bx_val * dz,
+                int_by_t_m=by_val * dz,
+                beam_energy_eV=self.energy_eV,
+                particle_charge_C=self.particle_charge_C
+            )
 
             out_beam[1, valid_mask] += delta_xp
             out_beam[3, valid_mask] += delta_yp

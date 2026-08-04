@@ -6,7 +6,7 @@ rigidity calculations, and sign conventions for NKM magnetic fields and kicks.
 """
 
 from dataclasses import dataclass
-from typing import Literal, Optional, Union, NewType
+from typing import Literal, Optional, Union, NewType, Tuple
 import numpy as np
 
 # Physical NewType unit aliases
@@ -132,26 +132,86 @@ def convert_kick_angle(val: Union[float, np.ndarray], from_unit: str, to_unit: s
     raise ValueError(f"Unsupported kick angle conversion from '{from_unit}' to '{to_unit}'")
 
 
+def integrated_field_to_transverse_kicks(
+    int_bx_t_m: Union[float, np.ndarray],
+    int_by_t_m: Union[float, np.ndarray],
+    *,
+    beam_energy_eV: float,
+    particle_charge_C: float = ELECTRON_CHARGE_C,
+    coordinate_convention: str = "AT"
+) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+    """
+    Convert integrated magnetic field components (integral B_x ds, integral B_y ds) in T*m
+    to transverse kick angles (Delta x', Delta y') in radians using Lorentz-force physics.
+    
+    Lorentz Force Derivation (Ultra-relativistic beam with v_z ≈ c):
+      F_x = q (v_y B_z - v_z B_y) ≈ -q c B_y  =>  d(px)/ds = -q B_y  =>  Delta x' = (q / |q|) * (integral B_y ds / B_rho)
+      F_y = q (v_z B_x - v_x B_z) ≈ +q c B_x  =>  d(py)/ds = -(q / |q|) * (integral B_x ds / B_rho)
+      
+    For electron beam (q = -e < 0):
+      Delta x' = - (integral B_y ds) / B_rho
+      Delta y' = + (integral B_x ds) / B_rho
+      
+    Args:
+        int_bx_t_m: Integrated horizontal magnetic field component (integral B_x ds) in T*m.
+        int_by_t_m: Integrated vertical magnetic field component (integral B_y ds) in T*m.
+        beam_energy_eV: Beam energy in eV.
+        particle_charge_C: Particle charge in Coulombs (default ELECTRON_CHARGE_C).
+        coordinate_convention: Coordinate convention string (default 'AT').
+        
+    Returns:
+        Tuple (delta_xp, delta_yp) in radians.
+    """
+    brho = compute_rigidity(beam_energy_eV, particle_charge_C)
+    charge_sign = float(np.sign(particle_charge_C))  # -1.0 for electron
+    
+    delta_xp = charge_sign * (int_by_t_m / brho)
+    delta_yp = -charge_sign * (int_bx_t_m / brho)
+    
+    return delta_xp, delta_yp
+
+
+def transverse_kicks_to_integrated_field(
+    delta_xp: Union[float, np.ndarray],
+    delta_yp: Union[float, np.ndarray],
+    *,
+    beam_energy_eV: float,
+    particle_charge_C: float = ELECTRON_CHARGE_C,
+    coordinate_convention: str = "AT"
+) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+    """
+    Convert transverse kick angles (Delta x', Delta y') in radians back to integrated magnetic field
+    components (integral B_x ds, integral B_y ds) in T*m.
+    """
+    brho = compute_rigidity(beam_energy_eV, particle_charge_C)
+    charge_sign = float(np.sign(particle_charge_C))  # -1.0 for electron
+    
+    int_by_t_m = (delta_xp * brho) / charge_sign
+    int_bx_t_m = (-delta_yp * brho) / charge_sign
+    
+    return int_bx_t_m, int_by_t_m
+
+
 def integrated_field_to_kick(integrated_field: Union[float, np.ndarray],
-                            metadata: KickMapMetadata,
-                            beam_energy_eV: Optional[float] = None) -> Union[float, np.ndarray]:
+                             metadata: KickMapMetadata,
+                             beam_energy_eV: Optional[float] = None) -> Union[float, np.ndarray]:
     """
     Convert integrated field integral(B_y ds) to horizontal kick angle Delta x' in radians.
-    
-    Sign convention (AT / Lorentz):
-    Delta x' = (q / |q|) * (integrated_field_Tm / B_rho)
-    For electron (q < 0): Delta x' = - integrated_field_Tm / B_rho
+    Delegates to component-aware integrated_field_to_transverse_kicks.
     """
     energy = beam_energy_eV if beam_energy_eV is not None else metadata.beam_energy_eV
     if energy is None:
         raise ValueError("beam_energy_eV must be provided in metadata or as argument")
 
     int_field_Tm = convert_integrated_field(integrated_field, metadata.value_unit, "T_m")
-    brho = compute_rigidity(energy, metadata.particle_charge_C)
-    
-    charge_sign = float(np.sign(metadata.particle_charge_C))  # -1.0 for electron
-    kick_rad = charge_sign * (int_field_Tm / brho)
-    return kick_rad
+    delta_xp, _ = integrated_field_to_transverse_kicks(
+        int_bx_t_m=0.0,
+        int_by_t_m=int_field_Tm,
+        beam_energy_eV=energy,
+        particle_charge_C=metadata.particle_charge_C,
+        coordinate_convention=metadata.sign_convention
+    )
+    return delta_xp
 
 
 def kick_to_integrated_field(kick_rad: Union[float, np.ndarray],
@@ -159,12 +219,17 @@ def kick_to_integrated_field(kick_rad: Union[float, np.ndarray],
                              beam_energy_eV: Optional[float] = None) -> Union[float, np.ndarray]:
     """
     Convert horizontal kick angle Delta x' in radians to integrated field integral(B_y ds) in T*m.
+    Delegates to component-aware transverse_kicks_to_integrated_field.
     """
     energy = beam_energy_eV if beam_energy_eV is not None else metadata.beam_energy_eV
     if energy is None:
         raise ValueError("beam_energy_eV must be provided in metadata or as argument")
 
-    brho = compute_rigidity(energy, metadata.particle_charge_C)
-    charge_sign = float(np.sign(metadata.particle_charge_C))  # -1.0 for electron
-    int_field_Tm = charge_sign * kick_rad * brho
-    return convert_integrated_field(int_field_Tm, "T_m", metadata.value_unit)
+    _, int_by_Tm = transverse_kicks_to_integrated_field(
+        delta_xp=kick_rad,
+        delta_yp=0.0,
+        beam_energy_eV=energy,
+        particle_charge_C=metadata.particle_charge_C,
+        coordinate_convention=metadata.sign_convention
+    )
+    return convert_integrated_field(int_by_Tm, "T_m", metadata.value_unit)

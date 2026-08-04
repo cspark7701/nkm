@@ -14,7 +14,9 @@ from .fieldmap import OutOfDomainError, BaseFieldMap
 from .units import (
     KickMapMetadata,
     convert_kick_angle,
+    convert_integrated_field,
     integrated_field_to_kick,
+    integrated_field_to_transverse_kicks,
     ELECTRON_CHARGE_C
 )
 
@@ -153,8 +155,18 @@ class NKMKickMap2D(BaseFieldMap):
             kick_x = convert_kick_angle(kx_raw, self.metadata.value_unit, "rad")
             kick_y = convert_kick_angle(ky_raw, self.metadata.value_unit, "rad")
         elif self.metadata.value_type == "integrated_field":
-            kick_x = integrated_field_to_kick(ky_raw, self.metadata, energy_eV)
-            kick_y = integrated_field_to_kick(kx_raw, self.metadata, energy_eV)
+            int_bx = convert_integrated_field(kx_raw, self.metadata.value_unit, "T_m")
+            int_by = convert_integrated_field(ky_raw, self.metadata.value_unit, "T_m")
+            energy = energy_eV if energy_eV is not None else self.metadata.beam_energy_eV
+            if energy is None:
+                raise ValueError("beam_energy_eV must be provided in metadata or as argument")
+            kick_x, kick_y = integrated_field_to_transverse_kicks(
+                int_bx_t_m=int_bx,
+                int_by_t_m=int_by,
+                beam_energy_eV=energy,
+                particle_charge_C=self.metadata.particle_charge_C,
+                coordinate_convention=self.metadata.sign_convention
+            )
         else:
             raise ValueError(f"Cannot evaluate kick angle directly from value_type '{self.metadata.value_type}'")
         return kick_x, kick_y
