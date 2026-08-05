@@ -112,3 +112,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 35. [**Milestone 35 — Task 04: Implement Element-Resolved Aperture and Septum Losses**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/35_task04_element_resolved_aperture_and_septum_losses.md)
     - Implemented element-by-element physical loss detection (`track_element_resolved_injection` in `src/nkm/storage_ring_injection.py`), `SeptumModel`, and `ElementAperture`, recording exact particle index, turn number, element index, $s$-coordinate, cause of loss, and transverse coordinates at the precise moment of loss.
+
+36. [**Milestone 36 — Task 05: Couple Optimized BTS Output to Storage-Ring Injection**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/36_task05_end_to_end_bts_to_storage_ring_coupling.md)
+    - Established an end-to-end simulation pipeline (`run_end_to_end_pipeline` in `src/nkm/end_to_end.py`), passing actual BTS exit 6D particle distributions into storage-ring element-resolved tracking and exporting machine-readable handoff artifacts (`bts_exit_distribution.npz`, `config.yaml`, `handoff_validation.json`).
