@@ -44,6 +44,52 @@ class StorageRingInjectionConfig:
     particle_charge_C: float = ELECTRON_CHARGE_C
 
 
+@dataclass
+class SeptumModel:
+    """
+    Physical Septum Magnet Wall Model for Storage Ring Injection.
+    """
+    x_septum_m: float = -0.016         # Septum sheet inner edge position (m)
+    thickness_m: float = 0.002          # Septum blade thickness (m)
+    element_name: str = "SEPTUM"        # Target element name
+    s_position_m: float = 0.0           # s-coordinate (m)
+    allowed_side: str = "stored"        # 'stored' (x > x_septum) or 'injected' (x < x_septum - thickness)
+
+    @property
+    def x_outer_m(self) -> float:
+        return self.x_septum_m - self.thickness_m
+
+    def check_collision(self, x: np.ndarray) -> np.ndarray:
+        """
+        Return boolean array where True indicates particle collides with physical septum wall or invalid side.
+        """
+        wall_collision = (x <= self.x_septum_m) & (x >= self.x_outer_m)
+        if self.allowed_side == "stored":
+            invalid_side = x <= self.x_septum_m
+            return wall_collision | invalid_side
+        elif self.allowed_side == "injected":
+            invalid_side = x >= self.x_outer_m
+            return wall_collision | invalid_side
+        return wall_collision
+
+
+@dataclass
+class ElementAperture:
+    """Element-resolved physical aperture limits."""
+    x_min: float = -0.030  # -30 mm
+    x_max: float = +0.030  # +30 mm
+    y_min: float = -0.015  # -15 mm
+    y_max: float = +0.015  # +15 mm
+
+    def check_loss(self, x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Returns boolean masks for (loss_xmin, loss_xmax, loss_ymin, loss_ymax)."""
+        loss_xmin = x < self.x_min
+        loss_xmax = x > self.x_max
+        loss_ymin = y < self.y_min
+        loss_ymax = y > self.y_max
+        return loss_xmin, loss_xmax, loss_ymin, loss_ymax
+
+
 def build_storage_ring_nkm_lattice(source_mat_path: Optional[Union[str, Path]] = None) -> at.Lattice:
     """
     Build storage ring lattice with NKM inserted from original K4GSR_HBIv4-1.mat source data.
@@ -305,3 +351,141 @@ def compute_multiturn_injection_metrics(injected_results: Dict[str, Any],
         "septum_clearance_mm": septum_clearance_mm,
         "total_losses_count": len(injected_results["loss_log"])
     }
+
+
+def track_element_resolved_injection(beam: np.ndarray,
+                                      ring: at.Lattice,
+                                      n_turns: int = 10,
+                                      kicker_model: str = "fieldmap",
+                                      kickmap_obj: Optional[NKMKickMap2D] = None,
+                                      scale_factor: float = 1.0,
+                                      config: Optional[StorageRingInjectionConfig] = None,
+                                      septum_model: Optional[SeptumModel] = None,
+                                      element_apertures: Optional[Dict[int, ElementAperture]] = None) -> TrackingResult:
+    """
+    Track 6D particle distribution through storage ring element-by-element over n_turns.
+    Detects physical aperture losses and septum collisions at the exact element where they occur.
+    """
+    if config is None:
+        config = StorageRingInjectionConfig()
+
+    if septum_model is None:
+        septum_model = SeptumModel(
+            x_septum_m=config.septum_x_offset_m,
+            thickness_m=config.septum_thickness_m,
+            element_name="SEPTUM"
+        )
+
+    default_aperture = ElementAperture(
+        x_min=-config.aperture_x_m,
+        x_max=+config.aperture_x_m,
+        y_min=-config.aperture_y_m,
+        y_max=+config.aperture_y_m
+    )
+
+    energy_GeV = config.energy_eV * 1e-9
+    n_particles = beam.shape[1]
+    current_beam = beam.copy()
+
+    turn_centroids = []
+    turn_emittances = []
+    turn_survived = []
+    loss_log = []
+
+    # Get s positions of lattice elements
+    try:
+        s_positions = ring.get_s_pos()
+    except Exception:
+        s_positions = np.zeros(len(ring))
+
+    for turn in range(1, n_turns + 1):
+        for elem_idx, elem in enumerate(ring):
+            s_pos = float(s_positions[elem_idx]) if elem_idx < len(s_positions) else 0.0
+            elem_name = getattr(elem, "FamName", f"ELEM_{elem_idx}")
+
+            # Apply NKM kicker on turn 1
+            if turn == 1 and elem_name == "NKM" and kicker_model != "off":
+                if kicker_model == "ideal":
+                    meta_ideal = KickMapMetadata(coordinate_unit="m", value_type="kick_angle", value_unit="mrad", beam_energy_eV=config.energy_eV)
+                    kick_ideal = lambda x, y: (np.full_like(x, -5.7491), np.zeros_like(y))
+                    current_beam = track_nkm_thin_kick(current_beam, kick_ideal, scale_factor=scale_factor, length_m=config.nkm_length_m, energy_GeV=energy_GeV, metadata=meta_ideal)
+                elif kicker_model == "linear":
+                    meta_linear = KickMapMetadata(coordinate_unit="m", value_type="kick_angle", value_unit="mrad", beam_energy_eV=config.energy_eV)
+                    kick_linear = lambda x, y: (-5.7491 + 0.35 * (x * 1e3), -0.35 * (y * 1e3))
+                    current_beam = track_nkm_thin_kick(current_beam, kick_linear, scale_factor=scale_factor, length_m=config.nkm_length_m, energy_GeV=energy_GeV, metadata=meta_linear)
+                elif kicker_model == "fieldmap" and kickmap_obj is not None:
+                    current_beam = track_nkm_thin_kick(current_beam, kickmap_obj.evaluate, scale_factor=scale_factor, length_m=config.nkm_length_m, energy_GeV=energy_GeV, metadata=kickmap_obj.metadata)
+            else:
+                # Track single element
+                res_elem = elem.track(current_beam)
+                if isinstance(res_elem, tuple):
+                    current_beam = res_elem[0]
+                elif isinstance(res_elem, np.ndarray) and res_elem.ndim == 4:
+                    current_beam = res_elem[:, :, 0, 0]
+
+            # Element-resolved loss checks
+            valid_mask = ~np.isnan(current_beam[0, :])
+            if not np.any(valid_mask):
+                continue
+
+            ap = element_apertures.get(elem_idx, default_aperture) if element_apertures else default_aperture
+
+            x_pts = current_beam[0, :]
+            y_pts = current_beam[2, :]
+
+            loss_xmin, loss_xmax, loss_ymin, loss_ymax = ap.check_loss(x_pts, y_pts)
+
+            septum_hit = np.zeros(n_particles, dtype=bool)
+            if "SEPTUM" in elem_name.upper() or elem_name == "NKM":
+                septum_hit = septum_model.check_collision(x_pts)
+
+            for p_idx in range(n_particles):
+                if valid_mask[p_idx]:
+                    cause = None
+                    if septum_hit[p_idx]:
+                        cause = "septum_collision"
+                    elif loss_xmin[p_idx] or loss_xmax[p_idx]:
+                        cause = "aperture_x_exceeded"
+                    elif loss_ymin[p_idx] or loss_ymax[p_idx]:
+                        cause = "aperture_y_exceeded"
+
+                    if cause is not None:
+                        loss_log.append({
+                            "particle_index": p_idx,
+                            "turn": turn,
+                            "element_index": elem_idx,
+                            "element_name": elem_name,
+                            "s_position_m": s_pos,
+                            "cause": cause,
+                            "x_m": float(current_beam[0, p_idx]),
+                            "y_m": float(current_beam[2, p_idx])
+                        })
+                        current_beam[:, p_idx] = np.nan
+
+        stats = compute_beam_statistics(current_beam)
+        turn_survived.append(stats["survived_particles"])
+        if stats["centroid"] is not None:
+            turn_centroids.append([stats["centroid"]["x_mm"], stats["centroid"]["xp_mrad"]])
+        else:
+            turn_centroids.append([np.nan, np.nan])
+        turn_emittances.append([stats["emittance_x_mrad"], stats["emittance_y_mrad"]])
+
+    final_stats = compute_beam_statistics(current_beam)
+    return TrackingResult(
+        particles_6d=current_beam,
+        n_particles=n_particles,
+        survived_particles=int(final_stats["survived_particles"]),
+        survival_fraction=float(final_stats["survival_fraction"]),
+        centroid=final_stats["centroid"],
+        emittance_x_mrad=float(final_stats["emittance_x_mrad"]),
+        emittance_y_mrad=float(final_stats["emittance_y_mrad"]),
+        centroid_history=np.array(turn_centroids),
+        emittance_history=np.array(turn_emittances),
+        survival_history=turn_survived,
+        loss_log=loss_log,
+        metadata={
+            "kicker_model": kicker_model,
+            "n_turns": n_turns,
+            "tracking_mode": "element_resolved"
+        }
+    )

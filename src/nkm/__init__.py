@@ -38,5 +38,11 @@ from .units import (
 )
 from .optimization import BaseOpticsObjective, DeterministicObjective, OpticsOptimizer, BTSOptimizationEvaluator
 from .robust_optimization import RobustMonteCarloObjective
+from .storage_ring_injection import (
+    SeptumModel,
+    ElementAperture,
+    track_element_resolved_injection,
+    StorageRingInjectionConfig
+)
 
 

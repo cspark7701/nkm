@@ -109,3 +109,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 34. [**Milestone 34 — Task 03: Add Two-Plane Thin/Thick NKM Validation**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/34_task03_two_plane_thin_thick_kick_validation.md)
     - Validated two-plane transverse particle tracking ($x, y$) across 6 field configurations and 4 tracking formulations, performed a 7-point slice count convergence scan ($N_{\text{slices}} = 5 \dots 320$), generated 3 publication figures, and quantitatively justified $N_{\text{slices}} = 40$ as the production setting.
+
+35. [**Milestone 35 — Task 04: Implement Element-Resolved Aperture and Septum Losses**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/35_task04_element_resolved_aperture_and_septum_losses.md)
+    - Implemented element-by-element physical loss detection (`track_element_resolved_injection` in `src/nkm/storage_ring_injection.py`), `SeptumModel`, and `ElementAperture`, recording exact particle index, turn number, element index, $s$-coordinate, cause of loss, and transverse coordinates at the precise moment of loss.
