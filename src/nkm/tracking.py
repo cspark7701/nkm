@@ -184,8 +184,16 @@ def track_nkm_thin_kick(beam: np.ndarray,
         delta_xp = convert_kick_angle(kx_val, metadata.value_unit, "rad") * scale_factor
         delta_yp = convert_kick_angle(ky_val, metadata.value_unit, "rad") * scale_factor
     elif metadata.value_type == "integrated_field":
-        delta_xp = integrated_field_to_kick(ky_val, metadata, energy_eV) * scale_factor
-        delta_yp = integrated_field_to_kick(kx_val, metadata, energy_eV) * scale_factor
+        from .units import convert_integrated_field, integrated_field_to_transverse_kicks
+        int_bx = convert_integrated_field(kx_val, metadata.value_unit, "T_m") * scale_factor
+        int_by = convert_integrated_field(ky_val, metadata.value_unit, "T_m") * scale_factor
+        delta_xp, delta_yp = integrated_field_to_transverse_kicks(
+            int_bx_t_m=int_bx,
+            int_by_t_m=int_by,
+            beam_energy_eV=energy_eV,
+            particle_charge_C=metadata.particle_charge_C,
+            coordinate_convention=metadata.sign_convention
+        )
     else:
         raise ValueError(f"Unsupported value_type in tracking: '{metadata.value_type}'")
         

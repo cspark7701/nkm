@@ -106,3 +106,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 33. [**Milestone 33 — Task 02: Validate True Longitudinal RADIA Field Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/33_task02_validate_longitudinal_radia_integration.md)
     - Implemented direct 1D numerical quadrature functions (`integrate_longitudinal_field` in `src/nkm/fieldmap.py`), performed grid resolution convergence scans ($N_z = 21 \dots 1001$), generated 3 publication figures, and validated direct quadrature against 2D kick map, analytical 4-wire model, and thick tracking.
+
+34. [**Milestone 34 — Task 03: Add Two-Plane Thin/Thick NKM Validation**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/34_task03_two_plane_thin_thick_kick_validation.md)
+    - Validated two-plane transverse particle tracking ($x, y$) across 6 field configurations and 4 tracking formulations, performed a 7-point slice count convergence scan ($N_{\text{slices}} = 5 \dots 320$), generated 3 publication figures, and quantitatively justified $N_{\text{slices}} = 40$ as the production setting.
