@@ -16,6 +16,7 @@ from src.nkm.fieldmap import (
     validate_1d_fieldmap,
     BaseFieldMap,
     NKMFieldMap1D,
+    integrate_longitudinal_field,
     OutOfDomainError
 )
 from src.nkm.kickmap import (
@@ -144,4 +145,27 @@ def test_base_fieldmap_inheritance_and_hashing(by_txt_path, kickmap_path):
 
     expected_kick_hash = "5c1a3f1437cec79917515eb13443fc176550b9040553811b644db02412c2e42b"
     assert kmap.verify_file_hash(expected_kick_hash) is True
+
+
+def test_integrate_longitudinal_field():
+    """Test direct 1D longitudinal numerical quadrature along z."""
+    z = np.linspace(-0.2625, 0.2625, 201)
+    # Gaussian field profile By(z) = B0 * exp(-(z/w)^2)
+    B0 = 0.146
+    w = 0.10
+    by = B0 * np.exp(-((z / w) ** 2))
+
+    int_simpson = integrate_longitudinal_field(z, by, method="simpson")
+    int_trapz = integrate_longitudinal_field(z, by, method="trapezoid")
+
+    # Analytical integral B0 * sqrt(pi) * w * erf(0.2625 / 0.10) ~ 0.146 * 0.177245 * 0.99977 ~ 0.02587 T*m
+    expected_int = float(B0 * np.sqrt(np.pi) * w * scipy_erf(0.2625 / w))
+    assert pytest.approx(int_simpson, rel=1e-4) == expected_int
+    assert pytest.approx(int_trapz, rel=1e-4) == expected_int
+
+
+def scipy_erf(x):
+    from scipy.special import erf
+    return erf(x)
+
 

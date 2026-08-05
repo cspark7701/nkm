@@ -17,7 +17,7 @@ from .paper import (
     set_publication_style,
     PUBLICATION_COLORS
 )
-from .fieldmap import BaseFieldMap, NKMFieldMap1D, OutOfDomainError
+from .fieldmap import BaseFieldMap, NKMFieldMap1D, OutOfDomainError, integrate_longitudinal_field
 from .kickmap import NKMKickMap2D
 from .tracking import TrackingResult
 from .units import (

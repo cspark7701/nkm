@@ -103,3 +103,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 32. [**Milestone 32 — Task 01: Fix NKM Kick Component and Sign Conventions**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/32_task01_fix_kick_component_sign_conventions.md)
     - Implemented unified, component-aware `integrated_field_to_transverse_kicks()` and `transverse_kicks_to_integrated_field()` functions in `src/nkm/units.py`, updated 2D kick map interpolators and thick integrators, verified electron vs. positron charge sign flipping, and validated thin vs. thick integrator agreement.
+
+33. [**Milestone 33 — Task 02: Validate True Longitudinal RADIA Field Integration**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/33_task02_validate_longitudinal_radia_integration.md)
+    - Implemented direct 1D numerical quadrature functions (`integrate_longitudinal_field` in `src/nkm/fieldmap.py`), performed grid resolution convergence scans ($N_z = 21 \dots 1001$), generated 3 publication figures, and validated direct quadrature against 2D kick map, analytical 4-wire model, and thick tracking.

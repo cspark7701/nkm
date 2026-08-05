@@ -142,13 +142,13 @@ def integrated_field_to_transverse_kicks(
 ) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
     """
     Convert integrated magnetic field components (integral B_x ds, integral B_y ds) in T*m
-    to transverse kick angles (Delta x', Delta y') in radians using Lorentz-force physics.
+    to transverse kick angles (Delta x', Delta y') in radians using AT coordinate conventions.
     
-    Lorentz Force Derivation (Ultra-relativistic beam with v_z ≈ c):
-      F_x = q (v_y B_z - v_z B_y) ≈ -q c B_y  =>  d(px)/ds = -q B_y  =>  Delta x' = (q / |q|) * (integral B_y ds / B_rho)
-      F_y = q (v_z B_x - v_x B_z) ≈ +q c B_x  =>  d(py)/ds = -(q / |q|) * (integral B_x ds / B_rho)
+    Accelerator Toolbox (AT / MAD-X) Sign Conventions:
+      Delta x' = (q / |q|) * (integral B_y ds / B_rho)
+      Delta y' = -(q / |q|) * (integral B_x ds / B_rho)
       
-    For electron beam (q = -e < 0):
+    For electron beam (q = -e < 0, charge_sign = -1.0):
       Delta x' = - (integral B_y ds) / B_rho
       Delta y' = + (integral B_x ds) / B_rho
       

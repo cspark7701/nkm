@@ -101,6 +101,48 @@ class BaseFieldMap:
         return bounds
 
 
+def integrate_longitudinal_field(z: np.ndarray,
+                                 by: np.ndarray,
+                                 method: str = "simpson") -> float:
+    """
+    Perform direct 1D numerical quadrature along longitudinal axis z (in meters)
+    to calculate integrated magnetic field I_y = integral B_y(z) dz in T*m.
+    
+    Args:
+        z: Longitudinal position array in meters (must be sorted).
+        by: Magnetic field component array B_y(z) in Tesla.
+        method: Numerical integration method ('simpson' or 'trapezoid').
+        
+    Returns:
+        Integrated field I_y in T*m.
+    """
+    if len(z) != len(by):
+        raise ValueError("z and by arrays must have equal length")
+    if len(z) < 2:
+        raise ValueError("At least 2 points required for numerical quadrature")
+
+    z_arr = np.asarray(z, dtype=float)
+    by_arr = np.asarray(by, dtype=float)
+
+    if method == "simpson":
+        try:
+            from scipy.integrate import simpson
+            int_val = float(simpson(y=by_arr, x=z_arr))
+        except ImportError:
+            from scipy.integrate import simps
+            int_val = float(simps(y=by_arr, x=z_arr))
+    elif method == "trapezoid":
+        try:
+            from scipy.integrate import trapezoid
+            int_val = float(trapezoid(y=by_arr, x=z_arr))
+        except ImportError:
+            int_val = float(np.trapz(y=by_arr, x=z_arr))
+    else:
+        raise ValueError(f"Unsupported numerical integration method: '{method}'")
+
+    return int_val
+
+
 def load_1d_fieldmap(filepath: Union[str, Path],
                     x_col: str = "x",
                     by_col: str = "By") -> Tuple[np.ndarray, np.ndarray]:

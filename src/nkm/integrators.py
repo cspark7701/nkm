@@ -123,9 +123,13 @@ class LorentzRK4Integrator:
         bx_val = bx_val * self.scale_factor
 
         dx_dz = xp
-        dxp_dz = self.charge_sign * by_val / self.brho
         dy_dz = yp
-        dyp_dz = - self.charge_sign * bx_val / self.brho
+        dxp_dz, dyp_dz = integrated_field_to_transverse_kicks(
+            int_bx_t_m=bx_val,
+            int_by_t_m=by_val,
+            beam_energy_eV=self.energy_eV,
+            particle_charge_C=self.particle_charge_C
+        )
 
         return np.array([dx_dz, dxp_dz, dy_dz, dyp_dz])
 
