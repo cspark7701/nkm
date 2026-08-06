@@ -118,3 +118,5 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 37. [**Milestone 37 — Task 06: Converged Multi-Turn Injection Studies**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/37_task06_converged_multiturn_injection_studies.md)
     - Implemented smoke/pilot/production simulation tier separation (`InjectionStudyTierConfig`), bootstrap capture efficiency confidence intervals, particle-count and turn-count convergence scans, and ensemble multi-seed runner. Fixed critical physics bugs: replaced `ring.track()` with AT linear one-turn map (M66) to avoid false losses from 4GSR internal apertures, corrected ideal kick to Courant-Snyder-optimal value from Twiss at NKM injection point, added `injection_aperture_x_m`. Updated `run_full_production_simulation.sh` to use `set -euo pipefail`.
+    - **[37a — Task 06 Detailed Execution Log](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/37a_task06_execution_log.md)**: Step-by-step record of all attempts, debugging investigations, physics analyses, and root causes for all 7 bugs found and fixed during implementation.
+
