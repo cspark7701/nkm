@@ -14,7 +14,7 @@
 #   -h, --help         Show this help message.
 # ==============================================================================
 
-set -e
+set -euo pipefail
 
 # Default configuration settings
 VERBOSE=true
@@ -166,7 +166,9 @@ run_step "Step 3: Symplectic Slicing Convergence Scan" \
 # Output saved to: ${OUTPUT_DIR}/multiturn/
 # ------------------------------------------------------------------------------
 run_step "Step 4: Multi-Turn Injection & Physical Aperture Tracking" \
-    python3 "${REPO_ROOT}/scripts/run_multiturn_injection.py"
+    python3 "${REPO_ROOT}/scripts/run_multiturn_injection.py" \
+        --tier production \
+        --output-dir "${OUTPUT_DIR}/multiturn"
 
 # ------------------------------------------------------------------------------
 # STEP 5: Deterministic BTS Transfer Line Quadrupole Optics Optimization

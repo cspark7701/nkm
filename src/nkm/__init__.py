@@ -49,5 +49,18 @@ from .end_to_end import (
     generate_booster_extraction_distribution,
     run_end_to_end_pipeline
 )
+from .convergence_study import (
+    InjectionStudyTierConfig,
+    smoke_config,
+    pilot_config,
+    production_config,
+    bootstrap_capture_ci,
+    particle_count_convergence_scan,
+    turn_count_convergence_scan,
+    compute_first_loss_turn_distribution,
+    compute_stored_beam_perturbation,
+    compute_injection_acceptance,
+    run_ensemble_study
+)
 
 

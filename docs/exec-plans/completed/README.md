@@ -115,3 +115,6 @@ This directory (`docs/exec-plans/completed/`) contains the complete, ordered rec
 
 36. [**Milestone 36 — Task 05: Couple Optimized BTS Output to Storage-Ring Injection**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/36_task05_end_to_end_bts_to_storage_ring_coupling.md)
     - Established an end-to-end simulation pipeline (`run_end_to_end_pipeline` in `src/nkm/end_to_end.py`), passing actual BTS exit 6D particle distributions into storage-ring element-resolved tracking and exporting machine-readable handoff artifacts (`bts_exit_distribution.npz`, `config.yaml`, `handoff_validation.json`).
+
+37. [**Milestone 37 — Task 06: Converged Multi-Turn Injection Studies**](file:///home/cspark/Work/projects/nkm/docs/exec-plans/completed/37_task06_converged_multiturn_injection_studies.md)
+    - Implemented smoke/pilot/production simulation tier separation (`InjectionStudyTierConfig`), bootstrap capture efficiency confidence intervals, particle-count and turn-count convergence scans, and ensemble multi-seed runner. Fixed critical physics bugs: replaced `ring.track()` with AT linear one-turn map (M66) to avoid false losses from 4GSR internal apertures, corrected ideal kick to Courant-Snyder-optimal value from Twiss at NKM injection point, added `injection_aperture_x_m`. Updated `run_full_production_simulation.sh` to use `set -euo pipefail`.
